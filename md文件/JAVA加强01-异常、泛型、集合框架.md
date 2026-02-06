@@ -270,3 +270,191 @@ Integer it2 = Integer.valueOf(100);**
         int k = Integer.valueOf(str);
         System.out.println(k);
         输出为98
+
+### 三、集合框架
+1.**集合**：集合是一种容器，用来装数据的，类似于数组，但集合大小可变
+2.**集合体系结构**
+  - **Collection**：单列集合，每个元素只包含一个值
+  - **Map**：双列集合，每个元素包含两个值(键值对)
+
+3.**collection集合**
+- collection< E>表示接口，规定了整体特点，然后分为List< E>接口和Set< E>接口。
+- List< E>接口：又分为ArrayList< E>实现类和LinkedList< E>实现类
+- Set< E>接口：又分为HashSet< E>实现类和TreeSet< E>实现类。其中HashSet< E>实现类又有一个继承类LinkedHashSet< E>实现类
+- **collection集合特点**
+   - List系列集合：添加的元素是有序、可重复、有索引
+   - >List< String > list = new ArrayList<>();  **==创建ArrayList对象==**
+        list.add("hello");  **==添加元素==**
+        list.add("hello");
+        list.add("world");
+        list.add("java");
+        System.out.println(list); **==输出结果为[hello, hello, world, java]==**
+        System.out.println(list.get(0)); **==获取指定索引的元素,即输出hello==**
+   - Set系列集合：添加的元素是无序、不重复、无索引。
+       - LinkedHashSet< E>集合：添加的元素是有序、不重复、无索引
+       - HashSet< E>集合：添加的元素是无序、不重复、无索引
+       - >Set< String> s = new HashSet<>();
+        s.add("hello");
+        s.add("hello");  **==添加重复元素，不会重复添加==**
+        s.add("world");
+        s.add("java");
+        System.out.println(s); **==输出结果为[world, java, hello]是无序的，并且没有get方法，没有索引==**
+       - TreeSet< E>集合：添加的元素是按照默认大小升序排序、不重复、无索引
+- **collection常用功能**
+  | 功能 | 描述 |
+  | ---- | ---- |
+  | add(E e) | 添加元素(布尔返回值) |
+  | remove(Object o) | 删除元素(布尔返回值) |
+  | contains(Object o) | 判断集合中是否包含某个元素(布尔返回值) |
+  | size() | 获取集合中元素的个数 |
+  | isEmpty() | 判断集合是否为空(布尔返回值) |
+  | clear() | 清空集合 |
+  | toArray() | 将集合转换为数组 |
+- >Collection< String > list = new ArrayList<>();
+        list.add("hello");  **==添加元素==**
+        list.add("world");
+        list.add("java");
+        System.out.println(list);
+        list.remove("world");  **==删除元素==**
+        System.out.println(list);  
+        System.out.println(list.size()); **==获取集合中元素的个数==**
+        System.out.println(list.isEmpty()); **==判断集合是否为空==**
+        System.out.println(list.contains("hello"));  **==判断集合中是否包含某个元素==**
+        list.clear();  **==清空集合==**
+        String[] arr = list.toArray(new String[0]);  **==将集合转换为字符串数组==**
+        System.out.println(Arrays.toString(arr));
+        Object[] Ob  = list.toArray(); **==将集合转换为对象数组==**
+- **collcection集合遍历方式**
+  - **迭代器遍历**：迭代器是用来遍历集合的专用方式(数组没有迭代器)，在JAVA中迭代器的代表是Iterator
+  - >import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+public class demo1 {
+    public static void main(String[] args) {
+        Collection<String> c = new ArrayList<>();
+        c.add(new String("AA"));
+        c.add(new String("BB"));
+        c.add(new String("CC"));
+        c.add(new String("DD"));
+        c.add(new String("EE"));
+        c.add(new String("FF"));
+        c.add(new String("GG"));
+        c.add(new String("HH"));
+        c.add(new String("II"));
+        c.add(new String("JJ"));
+        System.out.println(c);
+        **==Iterator< String> it = c.iterator();  迭代器
+        while (it.hasNext()) {  //判断当前位置有没有数据
+            String s = it.next(); //取当前位置数据赋给s，并把指针移到下一位
+            System.out.println(s);
+        }==**
+    }
+}
+- **增强for循环**：**==格式：for(数据类型 变量名 : 集合名){}==**
+- 增强for循环可以用来遍历数组和集合
+- 增强for遍历集合，本质就是迭代器遍历集合的简化写法 
+- >Collection<String> c = new ArrayList<>();
+   **==for(String s:c){  增强for循环
+            System.out.println(s);
+        }==**
+- **lambda表达式**：**==格式：(参数列表)->{方法体}==**
+- >c.forEach(new Consumer< String >() { ** //一开始的需要匿名内部类**
+            @Override
+            public void accept(String s) {
+                System.out.println(s);
+            }
+        });
+    **==c.forEach(s-> System.out.println(s)); //lambda简化后的==**
+    **==c.forEach(System.out::println); //方法引用,进一步简化了==**
+- **认识并发修改异常问题**：遍历集合的同时又存在增删集合元素的行为时可能出现业务异常
+- >public class demo2 {
+    public static void main(String[] args) {
+        ArrayList< String > list = new ArrayList<>();
+        list.add("CCCC ");
+        list.add("BBAA");
+        list.add("CCAA");
+        list.add("DDAA");
+        list.add("EEAA");
+        for(int i=0;i<list.size();i++){  **==遍历集合,并删除含有AA的字符串==**
+            String name = list.get(i);
+            if(name.contains("AA")){
+                list.remove(name);
+            }
+        }
+        System.out.println(list);
+    } **==输出结果为[CCCC, CCAA, EEAA]发现没有删干净，因为每次删除一个元素，集合后边的元素都会马上前移，就导致了部分元素直接跳过判断了==**
+}
+- >for(int i=0;i<list.size();i++){**一种解决方法**
+            String name = list.get(i);
+            if(name.contains("AA")){
+                list.remove(name);
+                **==i--;加个i--操作，就可以了==**
+            }
+        }
+        System.out.println(list);
+- >for(int i=list.size()-1;i>=0;i--){  **==另一种解决方法，倒着遍历==**
+            String name = list.get(i);  
+            if(name.contains("AA")){
+                list.remove(name);
+            }
+        }
+        System.out.println(list);
+- **三种遍历的区别**
+  - >Iterator< String > iterator = list.iterator();  **==迭代器遍历知道并发删除异常问题，故可以使用迭代器里面的remove方法解决这个问题==**
+  **==这种方法可适用于没有索引的集合==**
+        while(iterator.hasNext()){
+            String name = iterator.next();
+            if(name.contains("AA")){
+                **==iterator.remove();==**
+            }**不可以用list.remove(name)，会报错**
+        }
+        System.out.println(list);
+  - **增强for循环，和lambda表达式都无法解决并发修改异常问题**
+  - **因为增强for循环底层是迭代器，发现了修改数据就会报错，lambda表达式底层是增强for循环，也不能解决。因为明面上无法调用迭代器的remove方法，所以无法解决**
+  - **总之要想遍历并删除就用迭代器。**
+  - **增强for循环和lambda表达式只适合单纯做遍历**
+  - **for循环适合做有索引的遍历和修改**
+  - 
+4.**List集合**
+- **List集合特有方法**:
+  | 方法名 | 描述 |
+  | --- | --- |
+  | void add(int index,E element) | 在指定位置插入元素 |
+  | E get(int index) | 获取指定位置的元素 |
+  | E remove(int index) | 删除指定位置的元素 |
+  | E set(int index,E element) | 替换指定位置的元素 |
+- > public static void main(String[] args) {
+        List< String>  list = new ArrayList<>();
+        list.add("CCCC ");  **==添加元素==**
+        list.add("BBAA");
+        list.add("CCAA");
+        list.add("DDAA");
+        System.out.println(list);
+        System.out.println(list.get(2));  **==获取指定位置的元素==**
+        list.add(2,"AAAA");  **==在指定位置插入元素==**
+        System.out.println(list);
+        list.remove(3);  **==删除指定位置的元素==**
+        System.out.println(list);
+        list.set(2,"BBBB");  **==替换指定位置的元素==**
+        System.out.println(list);
+    }
+- **List集合适合的遍历方式**:**for循环、迭代器、增强for循环、lambda表达式**
+- **ArrayList的底层原理**:**ArrayList底层是基于数组存储数据的**
+- **数组的特点**：根据索引查询速度快，增删效率低
+- **LinkedList的底层原理**：**LinkedList底层是基于双链表存储数据的**
+- **链表**：是由一个一个结点组成的，结点在内存不连续，每个结点包含数据值和指向下一个节点的地址。增删相对快，查询难，因为无论查询哪个节点都要从头开始查
+- **双链表**：每个结点有数据值和两个指针，一个指针指向下一个结点，一个指针指向前一个结点。对首位元素进行增删快，对中间元素进行增删慢
+- **LinkedList方法**：
+  | 方法名 | 描述 |
+  | --- | --- |
+  | void addFirst(E element) | 在链表开头添加元素 |
+  | void addLast(E element) | 在链表末尾添加元素 |
+  | E getFirst() | 获取链表开头的元素 |
+  | E getLast() | 获取链表末尾的元素 |
+  | E removeFirst() | 删除链表开头的元素并返回该元素 |
+  | E removeLast() | 删除链表末尾的元素并返回该元素 |
+- **LinkedList应用场景**
+  - 设计队列，FIFO
+  - >每次添加元素，添加到链表末尾，删除元素(即获取返回的删除的元素)，删除链表头的元素，这样是从后往前加入的元素，然后先进先出，从头开始获取元素
+  - 设计栈：后进先出
+  - >每次添加元素从头开始添加，然后取元素也从头取，这样就是后进先出
