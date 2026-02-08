@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/01_hello_world/01_hello_world.iml" filepath="$PROJECT_DIR$/01_hello_world/01_hello_world.iml" />
+      <module fileurl="file://$PROJECT_DIR$/01_strong/01_strong.iml" filepath="$PROJECT_DIR$/01_strong/01_strong.iml" />
+      <module fileurl="file://$PROJECT_DIR$/02_basic/02_basic.iml" filepath="$PROJECT_DIR$/02_basic/02_basic.iml" />
+      <module fileurl="file://$PROJECT_DIR$/02_collection-map-stream/02_collection-map-stream.iml" filepath="$PROJECT_DIR$/02_collection-map-stream/02_collection-map-stream.iml" />
+      <module fileurl="file://$PROJECT_DIR$/03_flow_control/03_flow_control.iml" filepath="$PROJECT_DIR$/03_flow_control/03_flow_control.iml" />
+      <module fileurl="file://$PROJECT_DIR$/04_array/04_array.iml" filepath="$PROJECT_DIR$/04_array/04_array.iml" />
+      <module fileurl="file://$PROJECT_DIR$/05_oop/05_oop.iml" filepath="$PROJECT_DIR$/05_oop/05_oop.iml" />
+      <module fileurl="file://$PROJECT_DIR$/06_oop/06_oop.iml" filepath="$PROJECT_DIR$/06_oop/06_oop.iml" />
+      <module fileurl="file://$PROJECT_DIR$/07_oop/07_oop.iml" filepath="$PROJECT_DIR$/07_oop/07_oop.iml" />
+      <module fileurl="file://$PROJECT_DIR$/08_oop/08_oop.iml" filepath="$PROJECT_DIR$/08_oop/08_oop.iml" />
+      <module fileurl="file://$PROJECT_DIR$/java_code.iml" filepath="$PROJECT_DIR$/java_code.iml" />
+    </modules>
+  </component>
+</project>
