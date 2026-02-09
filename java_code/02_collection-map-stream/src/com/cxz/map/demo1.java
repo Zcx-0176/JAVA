@@ -43,5 +43,7 @@ public class demo1 {
         for (Map.Entry< String, String > entry : entrySet) {
             System.out.println(entry.getKey()+"--"+entry.getValue());
         }
+        //lambda表达式遍历
+        map.forEach((k,v)-> System.out.println(k+"--"+v));
     }
 }
