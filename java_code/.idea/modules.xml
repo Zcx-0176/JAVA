@@ -6,6 +6,7 @@
       <module fileurl="file://$PROJECT_DIR$/01_strong/01_strong.iml" filepath="$PROJECT_DIR$/01_strong/01_strong.iml" />
       <module fileurl="file://$PROJECT_DIR$/02_basic/02_basic.iml" filepath="$PROJECT_DIR$/02_basic/02_basic.iml" />
       <module fileurl="file://$PROJECT_DIR$/02_collection-map-stream/02_collection-map-stream.iml" filepath="$PROJECT_DIR$/02_collection-map-stream/02_collection-map-stream.iml" />
+      <module fileurl="file://$PROJECT_DIR$/03_file_io/03_file_io.iml" filepath="$PROJECT_DIR$/03_file_io/03_file_io.iml" />
       <module fileurl="file://$PROJECT_DIR$/03_flow_control/03_flow_control.iml" filepath="$PROJECT_DIR$/03_flow_control/03_flow_control.iml" />
       <module fileurl="file://$PROJECT_DIR$/04_array/04_array.iml" filepath="$PROJECT_DIR$/04_array/04_array.iml" />
       <module fileurl="file://$PROJECT_DIR$/05_oop/05_oop.iml" filepath="$PROJECT_DIR$/05_oop/05_oop.iml" />

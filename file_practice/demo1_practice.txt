@@ -1,0 +1,6 @@
+hello world
+hello world
+true
+10
+10.5
+a
