@@ -8,7 +8,9 @@
       <module fileurl="file://$PROJECT_DIR$/02_collection-map-stream/02_collection-map-stream.iml" filepath="$PROJECT_DIR$/02_collection-map-stream/02_collection-map-stream.iml" />
       <module fileurl="file://$PROJECT_DIR$/03_file_io/03_file_io.iml" filepath="$PROJECT_DIR$/03_file_io/03_file_io.iml" />
       <module fileurl="file://$PROJECT_DIR$/03_flow_control/03_flow_control.iml" filepath="$PROJECT_DIR$/03_flow_control/03_flow_control.iml" />
+      <module fileurl="file://$PROJECT_DIR$/04_Thread/04_Thread.iml" filepath="$PROJECT_DIR$/04_Thread/04_Thread.iml" />
       <module fileurl="file://$PROJECT_DIR$/04_array/04_array.iml" filepath="$PROJECT_DIR$/04_array/04_array.iml" />
+      <module fileurl="file://$PROJECT_DIR$/05_net/05_net.iml" filepath="$PROJECT_DIR$/05_net/05_net.iml" />
       <module fileurl="file://$PROJECT_DIR$/05_oop/05_oop.iml" filepath="$PROJECT_DIR$/05_oop/05_oop.iml" />
       <module fileurl="file://$PROJECT_DIR$/06_oop/06_oop.iml" filepath="$PROJECT_DIR$/06_oop/06_oop.iml" />
       <module fileurl="file://$PROJECT_DIR$/07_oop/07_oop.iml" filepath="$PROJECT_DIR$/07_oop/07_oop.iml" />
