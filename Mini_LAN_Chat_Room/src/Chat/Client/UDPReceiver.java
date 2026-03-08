@@ -9,6 +9,7 @@ import java.net.SocketException;
  * UDP接收端
  * 创建UDP套接字，并绑定端口，等待接收数据
  * 独立线程，持续监听服务器UDP广播
+ *
  */
 public class UDPReceiver extends Thread{
     private DatagramSocket udpsocket;
