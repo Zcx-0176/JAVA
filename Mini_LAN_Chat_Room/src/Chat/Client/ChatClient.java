@@ -12,6 +12,7 @@ import java.util.Scanner;
  * 启动客户端，连接服务器
  * 要想启动多个客户端，需要点击绿色run旁边的下三角，点击Edit Configurations...
  * 然后点击modify options,点击allow multiple instances
+ *
  */
 public class ChatClient {
     private static final String SERVER_IP = "127.0.0.1";
