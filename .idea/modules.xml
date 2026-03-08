@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/Enterprise_Inventory_Management_System/Enterprise_Inventory_Management_System.iml" filepath="$PROJECT_DIR$/Enterprise_Inventory_Management_System/Enterprise_Inventory_Management_System.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/Java_project.iml" filepath="$PROJECT_DIR$/.idea/Java_project.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Mini_LAN_Chat_Room/Mini_LAN_Chat_Room.iml" filepath="$PROJECT_DIR$/Mini_LAN_Chat_Room/Mini_LAN_Chat_Room.iml" />
     </modules>
   </component>
 </project>
