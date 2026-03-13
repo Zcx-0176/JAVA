@@ -1,8 +1,10 @@
-package Quick_sort;
-
-import java.util.Arrays;
-
-public class quick {
+package Sum_of_three_numbers;
+/**
+ * 快速排序
+ * 虽然在Solution类用的是直接集合List自带的sort方法
+ * 但是为了练习快排还是写了这个
+ */
+public class quicksort {
     public static void quick(int[] arr){
         quickSort(arr,0,arr.length-1);
     }
@@ -30,13 +32,6 @@ public class quick {
             int temp = arr[i];
             arr[i] = arr[j];
             arr[j] = temp;
-        }
-    }
-    public static void main(String[] args) {
-        int[] arr = {5,4,3,2,1,10,8,9,7,6};
-        quick(arr);
-        for(int i = 0;i<arr.length;i++){
-            System.out.print(arr[i]+" ");
         }
     }
 }
