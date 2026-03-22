@@ -195,7 +195,7 @@ public class main {
   - 分：对待排序数组递归的分成两半
   - 治：对每个子数组进行排序
   - 合：将已排序的子数组合并成一个完整的有序数组
-- 流程：**先创建一个临时数组，然后调用递归函数，需要传入初始数组，左右边界索引，临时数组，这个递归函数先是==根据left<right来获取mid索引，必须是小于==，不能是小于等于，因为递归到最后左右数组各剩了1个，这不用排序，需要返回，==获取mid索引，为了把左数组递归拆分，和右数组递归拆分，然后调用合并函数==，传入初始数组，左中右索引，临时数组这些数据，这个函数内==还需要把临时数组(排好序的)赋值给初始数组==，这样一步一步从递归的最后往上就会逐步排好序**
+- 流程：**先创建一个临时数组，然后调用递归函数，需要传入初始数组，左右边界索引，临时数组，这个递归函数先是==根据left<right来获取mid索引，必须是小于==，不能是小于等于，因为递归到最后左右数组各剩了1个，这不用排序，需要返回，==获取mid索引，为了把左数组递归拆分，和右数组递归拆分，然后调用合并函数==，传入初始数组，左中右索引，临时数组这些数据，这个函数内==还需要把临时数组(排好序的)赋值给初始数组==，这样一步一步从递归的最后往上就会逐步排好序。时间复杂度O(nlogn)，合并需要O(n)，递归每次分割成两半需要O(logn)**
 - >import java.util.Arrays;
 public class merge {
     **public static void mergesort(int[] arr){ //归并排序主程序
@@ -282,4 +282,365 @@ public class merge {
  * │   │   └── merge(8,8,9)          // 合并[6]和[2] → [2,6]
  * │   └── merge(5,7,9)              // 合并[3,4,5]和[2,6] → [2,3,4,5,6]
  * └── merge(0,4,9)                  // 合并[1,7,8,9,10]和[2,3,4,5,6] → [1,2,3,4,5,6,7,8,9,10]
+
+### 3. **快速排序**
+- 对冒泡排序的一种改进，从数组中选择一个元素作为基准元素，把数组分为两部分，比基准小的放左边，比基准大的放右边，递归的进行上述操作
+- 流程：**先是创建一个递归函数，里面要保证left<right，并且先调用获取最后索引的函数，再进行左递归和右递归**
+- >**public class quicksort {
+    public static void quick(int[] arr){  // 创建一个快速排序函数，用于主函数嗲用，这个调用了递归函数
+        quickSort(arr,0,arr.length-1);
+    }
+    public static void quickSort(int[] arr,int left,int right){  // 创建一个递归函数，用于进行排序和递归
+        if(left<right){  // 判断left<right
+            int pivot = divide(arr,left,right);  // 获取中标志引，即调用获取索引和排序函数
+            quickSort(arr,left,pivot-1); // 左递归
+            quickSort(arr,pivot+1,right); // 右递归
+        }
+    }
+    public static int divide(int[] arr,int left,int right){  // 创建一个函数，用于获取标志索引和排序
+        int pivot = arr[right]; // 选择最右元素作为基准值
+        int i = left-1; // i 指向小于等于 pivot 区域的最后一个元素
+        for(int j = left; j < right; j++){
+            if(arr[j] <= pivot){ // 当前元素 <= pivot
+                i++; // 扩展小于等于区域
+                swap(arr, i, j); // 将 arr[j] 交换到小于等于区域
+            }
+        }
+        swap(arr, i + 1, right); // 将 pivot 放到正确位置
+        return i + 1;  // 返回 pivot 的最终位置
+    }
+    private static void swap(int[] arr, int i, int j){  // 创建一个交换函数
+        if(i != j){
+            int temp = arr[i];
+            arr[i] = arr[j];
+            arr[j] = temp;
+        }
+    }
+    public static void main(String[] args) {  
+        int[] arr = {5,4,3,2,1,10,8,9,7,6};
+        quick(arr);
+        for(int i = 0;i<arr.length;i++){
+            System.out.print(arr[i]+" ");
+        }
+    }
+}**
+
  
+## 四、线性表
+- **前驱元素**：当前元素前面的元素
+- **后继元素**：当前元素后面的元素
+- **线性表的特征**：数据元素之间具有一对一的逻辑关系
+   - **头结点**：第一个元素，其没有前驱
+   - **尾结点**：最后一个元素，其没有后继
+   - 除了头结点、尾结点，其他元素都有前驱和后继
+- **线性表的分类**：顺序表和链表
+### 1. **顺序表**
+- 以数组形式保存的线性表
+-  **(1)数组**：长度固定、内存连续、可存储基本类型和对象、访问速度极快 (O(1))。
+- **数组创建方式**
+- | 创建方式 | 描述 |
+  | :---: | :---: |
+  | int[] arr = new int[5]; | 创建长度为5的数组 |
+  | int[] arr = {1,2,3,4,5}; | 创建一个长度为5的数组，并赋值 |
+  | int[] arr = new int[]{1,2,3,4,5}; | 创建一个长度为5的数组，并赋值 |
+  | int[][] arr = new int[5][5];| 创建一个二维数组，长度为5，每行长度为5|
+- **数组的核心工具类**：**Arrays**
+- | API | 描述 |
+  | :---: | :---: |
+  | String str = Arrays.toString(arr) | 数组转字符串 |
+  | Arrays.sort(arr) | 数组排序 |
+  | int index = Arrays.binarySearch(arr,key) | 二分查找 |
+  | Arrays.fill(arr,value) | 数组填充 |
+  |int[] newArr = Arrays.copyOf(arr,arr.length) | 数组复制 |
+  | int[] newArr = Arrays.copyOfRange(arr,from,to) | 数组复制,复制索引[from,to]的数组 |
+  | boolean isEqual = Arrays.equals(arr1,arr2) | 数组比较是否相等 |
+  | List< Integer > list = Arrays.asList(1,2,3,4,5) | 数组转List |
+
+- **(2) 动态数组：ArrayList(最常用)**
+- 基于数组实现，长度可动态增长，有序、可重复，允许null。查找快（按索引），中间增删慢。
+- **创建方式**
+- | 创建方式 | 描述 |
+  | :---: | :---: |
+  | List< Integer > list = new ArrayList<>(); | 创建一个空的ArrayList，多态写法 |
+  | ArrayList< Integer > list = new ArrayList<>(); | 创建一个空的ArrayList |
+  | ArrayList< Integer > list = new ArrayList<>(5); | 创建一个长度为5的ArrayList |
+- **常用API**
+- | API | 描述 |
+  | :---: | :---: |
+  | list.add(element) | 添加元素 |
+  | list.add(index,element) | 添加元素，指定位置 |
+  | list.add(Arrays.asList(str1,str2,str3)) | 添加多个元素，这是在 List<List<Integer>> list = new ArrayList<>();条件下，每次添加进去的三个元素整合为一个list，而这个list属于更大的集合list |
+  | list.addAll(anotherlist) | 添加另一个集合所有元素 |
+  | list.remove(index) | 删除指定位置的元素 |
+  | list.remove(element) | 删除指定元素的元素 |
+  | list.get(index) | 获取指定位置的元素 |
+  | list.size() | 获取集合长度 |
+  | list.isEmpty() | 判断集合是否为空 |
+  | list.clear() | 清空集合 |
+  | list.set(index,element) | 修改指定位置的元素 |
+  | list.contains(element) | 判断集合是否包含某个元素 |
+  | list.indexOf(element) | 获取首次出现指定元素的索引 |
+  | list.lastIndexOf(element) | 获取最后一次出现指定元素的索引 |
+  | list.forEach(System.out::println) | 迭代集合中的元素 |
+  | String[] str = list.toArray(new String[0]); | 将集合转换为数组 |
+- **(3) Set**
+- 不包含重复元素，最多一个null。无序
+- 主要实现类：
+    - **HashSet：基于HashMap实现，无序，查询速度最快。是Set的默认选择。**
+    - LinkedHashSet：基于LinkedHashMap实现，维护元素的插入顺序。
+    - TreeSet：基于红黑树实现，元素会按照自然顺序或指定的Comparator进行排序。
+- **创建方式：**
+- | 方式 | 作用 |
+  | :---: | :---: |
+  |Set< String > set = new HashSet<>(); | 创建一个空的HashSet |
+  |Set< String > set = new LinkedHashSet<>(); | 创建一个空的LinkedHashSet |
+  |Set< String > set = new TreeSet<>(); | 创建一个空的TreeSet |
+- **常用API，以HashSet为例：**
+- | 方法 | 作用 |
+  | :---: | :---: |
+  | set.add(element) | 添加元素 |
+  | boolean isT = set.add(element) | 添加元素并返回添加是否成功 |
+  | boolean hasit = set.contains(element) | 判断元素是否在集合中，没有get方法 |
+  | int size = set.size() | 获取集合中元素的个数 |
+  | set.forEach(System.out::println) | 遍历集合，因为没有索引，所以只能增强for循环或迭代器遍历 |
+  | set.remove(element) | 删除元素 |
+  | set.clear() | 删除所有元素 |
+  | set.isEmpty() | 判断集合是否为空 |
+  | set.retainAll(anotherset) | 交集，结果保留在set中 |
+  | set.removeAll(anotherset) | 差集(在set中但不在anotherset中的元素)，结果保留在set中 |
+  | set.addAll(anotherset) | 并集，结果保留在set中 |
+- **(4) HashMap**
+- 基于哈希表实现，存储键值对 (Key-Value)。Key不可重复，Value可重复。允许一个null键和多个null值。无序。
+- **创建方式：**
+- | 方式 | 描述 |
+  | :---: | :---: |
+  、Map<String, Integer> scoreMap = new HashMap<>(); | 创建一个空的HashMap |
+- **常用API：**
+- | 方法 | 描述 |
+  | :---: | :---: |
+  | put(K key, V value) | 添加键值对 |
+  | get(Object key) | 根据key获取value |
+  | remove(Object key) | 删除键值对 |
+  | remove(Object key, Object value) | 删除指定键值对 |
+  | size() | 获取HashMap大小 |
+  | isEmpty() | 判断HashMap是否为空 |
+  | containsKey(Object key) | 判断HashMap中是否包含指定key |
+  | containsValue(Object value) | 判断HashMap中是否包含指定value |
+  | keySet() | 获取HashMap中所有key的集合 |
+  | values() | 获取HashMap中所有value的集合 |
+- **如何用KeySet()**
+- 返回类型：Set< K >(一个Set集合，因为键是唯一的)
+- 核心用途：当你想遍历所有键，或者只需要处理键时使用。
+- >Map<String, Integer> studentScores = new HashMap<>();
+  Set< String > allNames = studentScores.keySet();
+- **如何用values()**
+- >Map<String, Integer> studentScores = new HashMap<>();
+  ArrayList< Integer > allScores = studentScores.values();
+- **注意事项**
+- **如果 创建是：HashMap<String,List< String >> hashmap = new HashMap<>();那么hashmap.get("key") ，返回的是一个List,那么如果需要添加这个key对应的value，则需要用hashmap.get("key").add("value")添加，即可以连起来，先获取对应键值的值，再根据ArrayList的add方法添加**
+- **如果如果 创建是：HashMap<String,List< String >> hashmap = new HashMap<>();，整个函数需要把HashMap的值转换成ArrayList并返回,则可以直接return new ArrayList<>(hashmap.values());**
+
+
+### 2. **链表**
+- 链表是一种线性数据结构，与数组不同，链表中的元素在内存中不是连续存储的。每个元素（称为节点）包含两部分：
+   - 数据域：存储实际数据
+   - 指针域：存储下一个节点的地址
+- **==重要认知1：链表中有一个元素是存放地址的，即next，比如有两个节点，节点1(val = 元素1，next = null)和节点2(val = 元素2，next = null)，如果节点1.next被赋值为节点2，则实际上就是节点2的地址被赋值给了节点1.next，节点1.next存放的就是节点2的地址，效果就是节点1里面的next字段指向了节点2，节点1把节点2连起来了：节点1->元素1->节点2->元素2，改链表了，1后边接了2==**
+- **==重要认知2：如果直接节点1=节点2，那就是改指针了，节点1被赋值为节点2，那么节点1和节点2都是指向节点2了，根本没连起来，只是指针换了，就相当于a=2,b=3,a=b一样，a最后等于b了==**
+- **==head==**：链表的头结点，指向第一个节点，如果没有则指向null。
+- **==比如head -> 1 -> 2 -> 3 -> 4 -> 5 -> null,head指向1，head.val=1,head.next=2，head是给外部提供一个查询，插入的钥匙==**
+- **(1) 单链表**
+- 每个节点只有指向下一个节点的指针，只能单向遍历
+- **(2) 双向链表**
+- 每个节点有两个指针，一个指向前驱结点，一个指向后继结点，可以双向遍历
+- **(3) 循环链表**
+- 尾节点指向头结点，形成环状结构，可以单向循环或者双向循环
+- **JAVA中的链表实现：LinkedList**
+- 是双向链表，非线程安全，允许重复元素，允许null，保持插入顺序(按什么顺序放进去，取出来就是什么顺序)
+- **创建方式：**
+- | 创建方式 | 描述 |
+  | :---: | :---: |
+  | LinkedList< String > list = new LinkedList<>(); | 创建一个空的LinkedList |
+  | LinkedList< String > list = new LinkedList<>(existingList); | 创建一个LinkedList，并把existingList中的元素添加到LinkedList中 |
+  | List< String > list = new LinkedList<>(); | 创建一个空的LinkedList，多态写法 |
+- **常用API：**
+- | 方法 | 描述 |
+  | :---: | :---: |
+  | list.add(element) | 添加元素 |
+  | list.add(index,element) | 添加元素，指定位置 |
+  | list.addFirst(element) | 头部添加元素 |
+  | list.addLast(element) | 尾部添加元素 |
+  | list.get(index) | 获取指定位置的元素 |
+  | list.getFirst() | 获取第一个元素 |
+  | list.getLast() | 获取最后一个元素 |
+  | list.remove(index) | 删除指定位置的元素 |
+  | list.removeFirst() | 删除第一个元素 |
+  | list.removeLast() | 删除最后一个元素 |
+  | list.remove(element) | 删除指定元素 |
+  | list.size() | 获取LinkedList大小 |
+  | list.isEmpty() | 判断LinkedList是否为空 |
+  | list.contains(element) | 判断LinkedList中是否包含指定元素 |
+  | list.clear() | 删除所有元素 |
+  | list.indexOf(element) | 返回元素首次出现的索引 |
+  | list.lastIndexOf(element) | 返回元素最后出现的索引 |
+  | list.poll() | 获取并删除第一个元素(出队) |
+  | list.offer(element) | 尾部添加元素（入队） |
+  | list.peek() | 获取第一个元素（队列操作）但不移除 |
+- **自定义链表实现：单链表、双向链表**
+- **单链表**
+
+```
+class ListNode<T> {
+    T val;
+    ListNode<T> next;
+
+    ListNode(T val) {
+        this.val = val;
+        this.next = null;
+    }
+
+    ListNode(T val, ListNode<T> next) {
+        this.val = val;
+        this.next = next;
+    }  
+}
+```
+- **双向链表**
+```
+class DoublyListNode<T> {
+    T val;
+    DoublyListNode<T> prev;
+    DoublyListNode<T> next;
+    
+    DoublyListNode(T val) {
+        this.val = val;
+        this.prev = null;
+        this.next = null;
+    }
+}
+```
+- **简单链表实现实例：**
+```
+class MyLinkedList<T> {
+    private ListNode<T> head;
+    private int size;
+    
+    public MyLinkedList() {
+        head = null;
+        size = 0;
+    }
+    
+    // 在头部添加节点
+    public void addFirst(T val) {
+        ListNode<T> newNode = new ListNode<>(val);
+        newNode.next = head;
+        head = newNode;
+        size++;
+    }
+    
+    // 在尾部添加节点
+    public void addLast(T val) {
+        ListNode<T> newNode = new ListNode<>(val);
+        if (head == null) {
+            head = newNode;
+        } else {
+            ListNode<T> current = head;
+            while (current.next != null) {
+                current = current.next;
+            }
+            current.next = newNode;
+        }
+        size++;
+    }
+    
+    // 获取链表大小
+    public int size() {
+        return size;
+    }
+    
+    // 遍历打印链表
+    public void printList() {
+        ListNode<T> current = head;
+        while (current != null) {
+            System.out.print(current.val + " -> ");
+            current = current.next;
+        }
+        System.out.println("null");
+    }
+}
+```
+- **链表的常见算法**、
+- **链表反转**
+- prev: 指向前一个节点
+  current: 指向当前节点
+  current.next: 指向下一个节点
+  Temp: 临时保存下一个节点
+- **head->1->2->3->null，反转后应为head->3->2->1->null。那么初始prev为null，这是代表了前一个节点，初始化current为head，这是当前节点。然后开始循环，每次先保存当前节点的下一个节点，防止丢失，然后把当前节点的下一个节点赋值为prev，即把原先的当前节点指向原先的下一个节点，变为当前节点指向prev(前一个节点)，然后把prev往后移，即把prev赋值为current，把current也往后移，即把current赋值为之前保存的下一个节点。直到current==null循环结束**
+```
+public ListNode<T> reverseList(ListNode<T> head) {
+    ListNode<T> prev = null;
+    ListNode<T> current = head;
+    
+    while (current != null) {
+        ListNode<T> nextTemp = current.next;
+        current.next = prev;
+        prev = current;
+        current = nextTemp;
+    }
+    
+    return prev;
+}
+```
+- **检测环(快慢指针法)**
+- **快慢指针:让快慢指针同时从head开始移动，快指针每次移动两步，慢指针每次移动一步，如果快慢指针相遇，则说明有环。**
+```
+public boolean hasCycle(ListNode<T> head) {
+    if (head == null || head.next == null) {
+        return false;
+    }
+    
+    ListNode<T> slow = head;
+    ListNode<T> fast = head;
+    
+    while (fast != null && fast.next != null) {
+        slow = slow.next;
+        fast = fast.next.next;
+        
+        if (slow == fast) {
+            return true;
+        }
+    }
+    
+    return false;
+}
+```
+- **合并两个有序链表**
+- **创建一个虚拟头节点dummy，dummy指向空节点，然后创建一个current节点，current节点指向dummy。然后比较l1和l2的节点值，将较小的节点连接到current的next，然后current节点后移，继续比较l1和l2的节点值，直到l1或l2为null。最后把还有剩余的节点连接到current的next，最后返回dummy的next。**
+```
+             节点1
+               ^
+               |
+    dummy -> 空节点  <- current
+```
+- **实际上，dummy存放的是空节点的地址，效果是dummy指向了空节点，current被赋值为dummy，实际上也是指向了这个空地址。创建current是为了代替dummy执行添加元素操作，为了确保最后的链表返回能找到一开始的虚拟头结点，即dummy，这样才能返回找到新链表的头，即dummy.next**
+- **==在链表中：赋值是动作，指向是效果==**
+```
+public ListNode<Integer> mergeTwoLists(ListNode<Integer> l1, ListNode<Integer> l2) {
+    ListNode<Integer> dummy = new ListNode<>();
+    ListNode<Integer> current = dummy;
+    
+    while (l1 != null && l2 != null) {
+        if (l1.val < l2.val) {
+            current.next = l1;
+            l1 = l1.next;
+        } else {
+            current.next = l2;
+            l2 = l2.next;
+        }
+        current = current.next;
+    }
+    
+    current.next = (l1 != null) ? l1 : l2;
+    return dummy.next;
+}
+```
