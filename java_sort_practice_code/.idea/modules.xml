@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/Array_practice_code/Array_practice_code.iml" filepath="$PROJECT_DIR$/Array_practice_code/Array_practice_code.iml" />
       <module fileurl="file://$PROJECT_DIR$/ListNode_practice_code/ListNode_practice_code.iml" filepath="$PROJECT_DIR$/ListNode_practice_code/ListNode_practice_code.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Stack_practice_code/Stack_practice_code.iml" filepath="$PROJECT_DIR$/Stack_practice_code/Stack_practice_code.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/java_sort_practice_code.iml" filepath="$PROJECT_DIR$/.idea/java_sort_practice_code.iml" />
       <module fileurl="file://$PROJECT_DIR$/sort_practice_code/sort_practice_code.iml" filepath="$PROJECT_DIR$/sort_practice_code/sort_practice_code.iml" />
     </modules>
