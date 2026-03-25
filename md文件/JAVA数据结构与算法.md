@@ -333,7 +333,7 @@ public class merge {
    - **头结点**：第一个元素，其没有前驱
    - **尾结点**：最后一个元素，其没有后继
    - 除了头结点、尾结点，其他元素都有前驱和后继
-- **线性表的分类**：顺序表和链表
+- **线性表的分类**：顺序表、链表、栈
 ### 1. **顺序表**
 - 以数组形式保存的线性表
 -  **(1)数组**：长度固定、内存连续、可存储基本类型和对象、访问速度极快 (O(1))。
@@ -575,7 +575,7 @@ class MyLinkedList<T> {
   current: 指向当前节点
   current.next: 指向下一个节点
   Temp: 临时保存下一个节点
-- **head->1->2->3->null，反转后应为head->3->2->1->null。那么初始prev为null，这是代表了前一个节点，初始化current为head，这是当前节点。然后开始循环，每次先保存当前节点的下一个节点，防止丢失，然后把当前节点的下一个节点赋值为prev，即把原先的当前节点指向原先的下一个节点，变为当前节点指向prev(前一个节点)，然后把prev往后移，即把prev赋值为current，把current也往后移，即把current赋值为之前保存的下一个节点。直到current==null循环结束**
+- **head->1->2->3->null，反转后应为3->2->1->null。head 还是指向1，没有变化。那么初始prev为null，这是代表了前一个节点，初始化current为head，这是当前节点。然后开始循环，每次先保存当前节点的下一个节点，防止丢失，然后把当前节点的下一个节点赋值为prev，即把原先的当前节点指向原先的下一个节点，变为当前节点指向prev(前一个节点)，然后把prev往后移，即把prev赋值为current，把current也往后移，即把current赋值为之前保存的下一个节点。直到current==null循环结束**
 ```
 public ListNode<T> reverseList(ListNode<T> head) {
     ListNode<T> prev = null;
@@ -644,3 +644,120 @@ public ListNode<Integer> mergeTwoLists(ListNode<Integer> l1, ListNode<Integer> l
     return dummy.next;
 }
 ```
+
+- **题目给出ListNode类，如何创建一个链表？**
+```
+public class ListNode{
+    int val;
+    ListNode next;
+    ListNode(){}
+    ListNode(int val){  有参构造函数
+        this.val = val;
+    }
+    ListNode(int val,ListNode next){
+        this.val = val;
+        this.next = next;
+    }
+}
+
+public class Solution {
+    public ListNode addTwoNumbers(ListNode l1, ListNode l2) {
+        ListNode head = new ListNode();   声明虚拟头结点，指向空节点
+        ListNode current = head;  
+        声明当前节点，被赋值为head，即指向空节点
+        这是为了后续能够成功返回head.next，即新链表
+
+        int carry = 0;   进位
+        while(l1 != null && l2 != null){
+            int rval = l1.val+l2.val+carry;
+            if(rval>=10){
+                carry = 1;
+                rval -=10;
+            }else if(rval<10){
+                carry=0;
+            }
+            current.next = new ListNode(rval);  根据rval的值创建节点
+            current = current.next;
+            l1=l1.next;
+            l2=l2.next;
+        }
+        while(l1!=null){
+            int rval = l1.val+carry;
+            if(rval>=10){
+                carry = 1;
+                rval -=10;
+            }else{
+                carry=0;
+            }
+            current.next = new ListNode(rval);
+            current = current.next;
+            l1=l1.next;
+        }
+        while(l2!=null){
+            int rval = l2.val+carry;
+            if(rval>=10){
+                carry = 1;
+                rval -=10;
+            }else{
+                carry=0;
+            }
+            current.next = new ListNode(rval);
+            current = current.next;
+            l2=l2.next;
+        }
+        if(carry!=0){
+            current.next = new ListNode(carry);
+        }
+        return head.next;
+    }
+    public static void main(String[] args) {
+        ListNode l1 = new ListNode(2);
+        l1.next = new ListNode(4);
+        l1.next.next = new ListNode(3);
+        ListNode l2 = new ListNode(5);
+        l2.next = new ListNode(6);
+        l2.next.next = new ListNode(4);
+        Solution s = new Solution();
+        ListNode ans = s.addTwoNumbers(l1, l2);
+        while(ans!=null){
+            System.out.print(ans.val+" ");
+            ans = ans.next;
+        }
+    }
+}
+```
+
+### 3. **栈**
+- **栈是一种后进先出(LIFO,last-in-first-out)的数据结构，栈的实现可以使用数组或者链表实现。**
+- **核心特性1**：数据的插入和删除只能在表的一端进行，这一端被称为 栈顶。相应地，另一端被称为 栈底。
+- **核心特性2**：LIFO原则：最后一个被压入栈的元素，将是第一个被弹出的元素。
+- **创建方式：**
+- **方式一：使用Stack类**
+- Stack是一个具体的类，直接实例化即可。
+- 注意：Stack由于继承自 Vector，是线程安全的，但同步开销可能导致性能不如其他实现。Java官方文档建议优先使用Deque。
+- | 方法 | 描述 |
+  | :--: | :--: |
+  |Stack< String > stack = new Stack<>();|创建一个空栈。|
+
+
+- **方式二：使用Deque接口及其实现**
+- Deque（双端队列）接口完美实现了LIFO栈的所有操作。**通常使用 ArrayDeque或 LinkedList作为实现类，==ArrayDeque==因其更优的性能而作为首选。**
+- | 方法 | 描述 |
+  | :--: | :--: |
+  |Deque< String > stack = new ArrayDeque<>();|创建一个空栈。|
+
+- **常用API：两种创建方式都能直接调用**
+- | 方法 | 描述 |
+  | :--: | :--: |
+  |stack.push(item)|将item压入栈中。|
+  |stack.pop()|弹出栈顶元素。|
+  |stack.peek()|返回栈顶元素，但不弹出它。|
+  |stack.isEmpty()|如果栈为空，则返回true。|
+  |stack.size()|返回栈中元素个数。|
+- **常见应用场景：**
+  - 函数调用栈：程序执行函数调用时，系统使用栈来管理调用关系、局部变量和返回地址。
+  - 表达式求值：将中缀表达式转换为后缀表达式（逆波兰表达式），并用栈来求值。例如，计算 3 + 5 * 2。
+  - 括号匹配：检查代码或表达式中的括号（(), {}, []）是否成对且嵌套正确。遇到左括号入栈，遇到右括号则检查栈顶是否匹配。
+  - 浏览器的前进与后退：使用两个栈（Back Stack和 Forward Stack）来实现页面的历史记录导航。
+  - 撤销（Undo）操作：编辑器或绘图软件中，将操作步骤压入栈，撤销时弹出栈顶操作。
+  - 深度优先搜索（DFS）：在图和树的遍历算法中，栈用于保存待访问的节点路径。
