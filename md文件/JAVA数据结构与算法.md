@@ -761,3 +761,124 @@ public class Solution {
   - 浏览器的前进与后退：使用两个栈（Back Stack和 Forward Stack）来实现页面的历史记录导航。
   - 撤销（Undo）操作：编辑器或绘图软件中，将操作步骤压入栈，撤销时弹出栈顶操作。
   - 深度优先搜索（DFS）：在图和树的遍历算法中，栈用于保存待访问的节点路径。
+
+### 4. **队列**
+- **队列是一种先进先出(FIFO,first-in-first-out)的数据结构，队列的实现可以使用数组或者链表实现。**
+- **核心特性1**：数据的插入只能在队尾(rear)进行，数据的删除只能在队首(front)进行。
+- **核心特性2**：FIFO原则：第一个被插入的元素，是第一个被删除的元素。
+- **分类**
+  - **单队列：**只能队尾入队，队首出队，是最基础的队列
+  - **双端队列：**队首和队尾都可以进行入队和出队操作
+  - **循环队列：**用数组实现时，件数组的首尾相连，解决普通数组队列的假溢出问题
+  - **优先队列：**不遵循FIFO原则，而是按照优先级进行排序，优先级高的先出队，底层基于堆实现
+- **java中的队列实现**
+- java中没有单独的Queue实现类，Queue是接口，必须使用实现类创建对象
+- |实现类|底层结构|特点|使用场景|
+  |:--:|:--:|:--:|:--:|
+  |ArrayDeque|动态数组|效率最高，无容量限制|普通、双端队列、循环队列|
+  |LinkedList|双向链表|增删效率高|普通、双端队列|
+  |PriorityQueue|二叉堆|默认小顶堆，可指定大顶堆|优先级队列，任务调度，TOP-K为题|
+- **创建方式：**
+```
+// 1. 普通队列（队尾入，队头出）
+Queue<String> queue = new ArrayDeque<>();
+
+// 2. 双端队列（两端都可出入）
+Deque<String> deque = new ArrayDeque<>();
+
+// 3. 优先队列
+Queue<Integer> priorityQueue = new PriorityQueue<>();
+```
+- **常用API：**
+- **普通队列Queue接口方法：**
+- | 方法 | 描述 |
+  | :--: | :--: |
+  |queue.offer(item)|队尾入队，添加成功返回true，失败返回false，不抛异常|
+  |queue.poll()|队首出队，返回队首元素，如果队列为空，则返回null|
+  |queue.peek()|返回队首元素，不删除，如果队列为空，则返回null|
+  |queue.add(item)|队尾入队，添加成功返回true，失败抛出异常|
+  |queue.remove()|队首出队，返回队首元素，如果队列为空，则抛出异常|
+  |queue.element() |返回队首元素，不删除，如果队列为空，则抛出异常|
+  |queue.isEmpty()|如果队列为空，则返回true|
+  |queue.size()|返回队列中元素个数|
+  |queue.clear()|清空队列|
+- **双端队列Deque方法：**
+- | 方法 | 描述 |
+  | :--: | :--: |
+  |deque.offerFirst(item)|队首入队，添加成功返回true，失败返回false，不抛异常|
+  |deque.offerLast(item)|队尾入队，添加成功返回true，失败返回false，不抛异常|
+  |deque.pollFirst()|队首出队，返回队首元素，如果队列为空，则返回null|
+  |deque.pollLast()|队尾出队，返回队尾元素，如果队列为空，则返回null|
+  |deque.peekFirst()|返回队首元素，不删除，如果队列为空，则返回null|
+  |deque.peekLast()|返回队尾元素，不删除，如果队列为空，则返回null|
+  |deque.isEmpty()|如果队列为空，则返回true|
+  |deque.size()|返回队列中元素个数|
+  |deque.clear()|清空队列|
+
+- **循环队列**
+- 解决问题：数组实现队列时，前面的空间出队后无法复用，导致假溢出
+- 核心思想：把数组首尾相连，重复利用空闲空间
+- **关键公式：**
+  1. **队空：front == rear**
+  2. **队满：(rear + 1) % capacity == front**
+  3. **入队：rear = (rear + 1) % capacity**
+  4. **出队：front = (front + 1) % capacity**
+- **==就是说：使用队首指针front(指向第一个要出队的位置)和队尾指针rear(指向下一个要入队的空位置)来构成循环队列，如果front == rear，则队列为空，因为两者指向同一个位置，证明队列没有元素。==**
+- **==(rear + 1) % capacity == front表示队满，因为rear指向下一个入队的位置，如果该位置的下一个位置和front重合，那么入队后，队列刚刚好满了。==**
+- **==rear = (rear + 1) % capacity表示入队，往队尾放了一个元素后，队尾指针需要后移一个位置，准备入队下一个元素。==**
+- **==front = (front + 1) % capacity表示出队，往队首取了一个元素后，队首指针需要后移一个位置，准备出队下一个元素。==**
+- **==为了区分队空和队满，需要把元素数量加一，变成队列的容量，这样永远有一个格子不会用，来区分队空和队满。如果没有这个格子，那么队满和队空front和rear指向同一个位置无法区分是空还是满==**
+- **循环队列代码实现，手撕时才用，平常就用ArrayDeque即可**：
+```
+public class CircularQueue {
+    private int[] data; // 数组存储数据
+    private int front; // 队头指针
+    private int rear; // 队尾指针
+    private int capacity; // 队列容量
+
+    // 构造方法：初始化循环队列
+    public CircularQueue(int k) {
+        capacity = k + 1; // 预留一个空位，区分队空和队满
+        data = new int[capacity];
+        front = 0;
+        rear = 0;
+    }
+
+    // 入队
+    public boolean enQueue(int value) {
+        if (isFull()) return false;
+        data[rear] = value;
+        rear = (rear + 1) % capacity;
+        return true;
+    }
+
+    // 出队
+    public boolean deQueue() {
+        if (isEmpty()) return false;
+        front = (front + 1) % capacity;
+        return true;
+    }
+
+    // 获取队头元素
+    public int Front() {
+        if (isEmpty()) return -1;
+        return data[front];
+    }
+
+    // 获取队尾元素
+    public int Rear() {
+        if (isEmpty()) return -1;
+        return data[(rear - 1 + capacity) % capacity];
+    }
+
+    // 判断队空
+    public boolean isEmpty() {
+        return front == rear;
+    }
+
+    // 判断队满
+    public boolean isFull() {
+        return (rear + 1) % capacity == front;
+    }
+}
+```
