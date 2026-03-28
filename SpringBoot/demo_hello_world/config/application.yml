@@ -1,0 +1,5 @@
+# 最高优先级：项目根目录下的 config 文件夹
+# E:\java-workplace\SpringBoot\demo_hello_world\config\application.yml
+server:
+  port: 8081
+

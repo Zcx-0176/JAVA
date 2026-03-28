@@ -1,0 +1,8 @@
+# 第二优先级：项目根目录
+# E:\java-workplace\SpringBoot\demo_hello_world\application.yml
+server:
+  port: 8082
+
+spring:
+  profiles:
+    active: dev

@@ -1,2 +1,4 @@
+# 最低优先级：resources 根目录（你现在默认的位置）
+# E:\java-workplace\SpringBoot\demo_hello_world\src\main\resources\application.yml
 server:
-  port: 8080
+  port: 8084
