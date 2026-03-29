@@ -16,6 +16,7 @@
       <module fileurl="file://$PROJECT_DIR$/06_oop/06_oop.iml" filepath="$PROJECT_DIR$/06_oop/06_oop.iml" />
       <module fileurl="file://$PROJECT_DIR$/07_oop/07_oop.iml" filepath="$PROJECT_DIR$/07_oop/07_oop.iml" />
       <module fileurl="file://$PROJECT_DIR$/08_oop/08_oop.iml" filepath="$PROJECT_DIR$/08_oop/08_oop.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JDBC/JDBC.iml" filepath="$PROJECT_DIR$/JDBC/JDBC.iml" />
       <module fileurl="file://$PROJECT_DIR$/java_code.iml" filepath="$PROJECT_DIR$/java_code.iml" />
     </modules>
   </component>
