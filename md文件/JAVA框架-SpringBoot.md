@@ -654,3 +654,672 @@ public class MyMvcConfig implements WebMvcConfigurer {
   - 在templates目录下创建edit.html，展示编辑员工页面
 - **在DBeaver中，可以点击SQL编辑器，选择新建SQL编辑器，输入SQL语句，执行SQL语句，就可填入数据，如INSERT INTO `employee_db`.`user` (username, password) VALUES ('1111', '1234567');刷新user表，查看数据**
 - 启动后，访问localhost:8080，会自动跳转到登录页面，输入在MySQL中填入的用户名1111和密码1234567，登录成功后，会自动跳转到首页，点击查看列表即可进入员工列表页面，然后可点击添加员工按钮、编辑按钮和删除按钮，进行增删改查操作
+
+## 九、JDBC
+- **JDBC**:**Java Database Connectivity**，即Java 官方提供的一套接口规范，让 Java 程序能连接数据库、执行 SQL、操作数据。
+- 所有java操作数据库的框架，底层都是JDBC
+- **核心思想**：JDBC本身是**一套接口，即java.sql 包下的一堆类（Connection、Statement、ResultSet 等）**，没有实现类，
+- 实现类由各个数据库厂商提供，叫**数据库驱动（Driver）**
+
+- **核心对象**
+  - **DriverManager**:加载驱动，获取数据库连接
+  - **Connection**：数据库连接对象，负责创建语句，管理事务
+  - **Statement**：执行 SQL 语句，返回结果集，但是有SQL注入风险
+  - **PreparedStatement**：执行 SQL 语句，返回结果集，防注入、效率高，企业必用
+  - **ResultSet**：结果集对象，封装了查询结果
+- **标准执行步骤**：加载驱动，获取连接Connection，获取PreparedStatement，执行SQL，处理ResultSet，关闭连接
+- **Statement vs PreparedStatement**：Statement：直接拼接 SQL，有注入风险，不预编译。PreparedStatement：预编译 SQL，使用？占位符，防注入，重复执行效率高。
+- **执行方法**：executeQuery()：执行查询语句（SELECT），返回 ResultSet。executeUpdate()：执行增删改（INSERT/UPDATE/DELETE），返回受影响行数。
+- **JDBC事务**：JDBC默认自动提交事务(执行一次SQL就提交一次)
+- **连接池**：原生JDBC频繁创建和销毁连接，性能极差，故常用Druid连接池，或者SpringBoot默认的HikariCP连接池
+- 如下是普通java项目，使用JDBC操作数据库，需要在项目根目录下创建lib文件夹，将mysql-connector-java-8.0.23.jar复制到lib文件夹下，并右键这个jar包，选择Add to Classpath，这样lib下的所有jar包都会被添加到项目依赖中
+```
+import java.sql.*;
+
+public class JdbcUtil {
+    private static final String URL = "jdbc:mysql://localhost:3306/jdbc_demo?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true";
+    private static final String USER = "root";
+    private static final String PASSWORD = "123456";
+    //加载驱动
+    static{
+        try{
+            Class.forName("com.mysql.cj.jdbc.Driver");
+        }catch(ClassNotFoundException e){
+            e.printStackTrace();
+        }
+    }
+    //获取连接
+    public static Connection getConnection(){
+        try{
+            return DriverManager.getConnection(URL,USER,PASSWORD);
+        }catch(SQLException e){
+            throw new RuntimeException(e);
+        }
+    }
+    //关闭资源
+    public static void  close(ResultSet rs,Statement stmt,Connection conn){
+        try{
+            if(rs!=null) rs.close();
+        }catch(SQLException e){
+            e.printStackTrace();
+        }
+        try{
+            if(stmt!=null) stmt.close();
+        }catch(SQLException e){
+            e.printStackTrace();
+        }
+        try{
+            if(conn!=null) conn.close();
+        }catch(SQLException e){
+            e.printStackTrace();
+        }
+    }
+}
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+//增删改查完整测试类
+//C ： 创建create
+//R ： 读取read
+//U ： 修改update
+//D ： 删除delete
+public class JdbcCRUD {
+    public static void add(String name,int age,String address){
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        String sql = "insert into user(name,age,address) values(?,?,?)";
+        //?是占位符，表示 SQL 语句中的参数，参数的值会通过 set 方法设置
+        try{
+            conn = JdbcUtil.getConnection();
+            pstmt = conn.prepareStatement(sql); //通过数据库连接对象 conn 调用 prepareStatement(sql) 方法，将 SQL 语句预编译并创建 PreparedStatement 对象 pstmt
+            pstmt.setString(1,name); //把传入的name的值赋给 SQL 语句中的第一个参数?
+            pstmt.setInt(2,age);  //把传入的age的值赋给 SQL 语句中的第二个参数?
+            pstmt.setString(3,address);  //把传入的address的值赋给 SQL 语句中的第三个参数?
+            int rows = pstmt.executeUpdate();  //执行 SQL 语句，返回受 SQL 语句影响的行数
+            System.out.println("新增成功，影响行数："+ rows);
+        }catch(SQLException e){
+            e.printStackTrace();
+        }finally{
+            JdbcUtil.close(null,pstmt,conn);
+        }
+    }
+    //根据id查询
+    public static void findById(int id){
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        String sql = "select * from user where id=?";
+        try{
+            conn = JdbcUtil.getConnection();
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1,id);
+            rs = pstmt.executeQuery();  //执行 SQL 查询语句，返回结果集 rs
+            if(rs.next()){   //将游标移动到结果集的第一行，如果存在数据则返回 true，用于判断查询结果是否为空
+                System.out.println("id:" + rs.getInt("id")
+                    + " name:" + rs.getString("name")
+                    + " age:" + rs.getInt("age")
+                    + " address:" + rs.getString("address"));
+            }
+        }catch(SQLException e){
+            e.printStackTrace();
+        }finally{
+            JdbcUtil.close(rs,pstmt,conn);
+        }
+    }
+    //修改
+    public static void update(int id,String name){
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        String sql = "update user set name=? where id=?";
+        try{
+            conn = JdbcUtil.getConnection();
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1,name);
+            pstmt.setInt(2,id);
+            int rows = pstmt.executeUpdate();
+            System.out.println("修改成功，影响行数："+ rows);
+        }catch(SQLException e){
+            e.printStackTrace();
+        }finally{
+            JdbcUtil.close(null,pstmt,conn);
+        }
+    }
+    //删除
+    public static void delete(int id){
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        String sql = "delete from user where id=?";
+        try{
+            conn = JdbcUtil.getConnection();
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1,id);
+            int rows = pstmt.executeUpdate();
+            System.out.println("删除成功，影响行数："+ rows);
+        }catch (SQLException e){
+            e.printStackTrace();
+        }finally {
+            JdbcUtil.close(null,pstmt,conn);
+        }
+    }
+    //事务演示
+    /*
+    这段代码演示了数据库事务操作：
+        获取数据库连接并关闭自动提交
+        准备两条 SQL 语句：id=1 的用户年龄减 1，id=2 的用户年龄加 1
+        依次执行两条更新语句
+        如果都成功执行，则提交事务
+        如果发生异常，事务会自动回滚，保证数据的原子性和一致性
+     */
+    public static void transaction(){
+        Connection conn = null;
+        PreparedStatement pstmt1 = null;
+        PreparedStatement pstmt2 = null;
+        try{
+            conn = JdbcUtil.getConnection();
+            conn.setAutoCommit(false); //关闭自动提交
+            String sql1 = "update user set age=age-1 where id=1";
+            String sql2 = "update user set age=age+1 where id=2";
+
+            pstmt1 = conn.prepareStatement(sql1);
+            pstmt1.executeUpdate();
+            pstmt2 = conn.prepareStatement(sql2);
+            pstmt2.executeUpdate();
+
+            conn.commit();
+            System.out.println("事务提交成功");
+        }catch (SQLException e){
+            e.printStackTrace();
+        }finally {
+            JdbcUtil.close(null,pstmt1,null);
+            JdbcUtil.close(null,pstmt2,conn);
+        }
+    }
+    //测试
+    public static void main(String[] args) {
+        add("张三", 18, "北京");
+        findById(1);
+        add("李四", 19, "上海");
+        add("王五", 20, "广州");
+        findById(2);
+        update(1,"张三冯");
+        delete(3);
+        transaction();
+    }
+}
+```
+- **SpringBoot对JDBC的封装**
+- |层级|作用|核心组件|
+  |:---:|:---:|:---:|
+  |连接管理层|替代原生 DriverManager，用连接池复用连接，避免频繁创建销毁|DataSource（数据源接口）|
+  |模板工具层|封装资源获取 / 释放、异常处理，让开发者只关注 SQ|JdbcTemplate|
+  |ORM 框架层|进一步封装，用对象操作替代手写 SQL|MyBatis / MyBatis-Plus / JPA|
+- **核心组件：DataSource数据源**
+- javax.sql.DataSource 是 Java 标准接口，负责管理数据库连接，是连接池的统一入口。
+- 对比原生JDBC，原生每次请求都要新建连接，用完再销毁。而SpringBoot从连接池借连接，连接复用，默认用连接池HikariCP
+- **核心工具：JdbcTemplate**
+- JdbcTemplate 是 SpringBoot 封装的轻量级 JDBC 工具类，简化了 JDBC 的操作，提供了一系列方法，简化了数据库操作。自动获取连接，释放连接，处理异常，简化结果集映射
+- 核心方法：
+- |方法|作用|
+  |:---:|:---:|
+  |update(String sql, Object... args)|执行 INSERT、UPDATE、DELETE 语句，返回影响的行数|
+  |query(String sql, Object... args)|执行 SELECT 语句，返回结果集|
+  |queryForObject(String sql, Object... args)|执行 SELECT 语句，返回单个结果，即单行单列/单行多列|
+  |batchUpdate(String sql, Object[][] args)|执行批量 INSERT、UPDATE、DELETE 语句，返回影响的行数|
+- **SpringBoot默认连接池：HikariCP**
+- HikariCP 是 SpringBoot 默认的连接池，性能高、配置简单、线程安全，开箱即用，几乎不需要额外配置
+- **基础使用：零代码、仅需配置**
+  - **引入依赖**
+  ```
+  <!-- 引入这个依赖 -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-jpa</artifactId>
+    </dependency>
+  <!-- 或者引入这个依赖 -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-jdbc</artifactId>
+    </dependency>
+  ```
+  - **配置application.yml**
+  ```
+  spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/jdbc_demo?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    # HikariCP 核心配置（可选，默认值已足够优秀）
+    hikari:
+      minimum-idle: 5          # 最小空闲连接数
+      maximum-pool-size: 20    # 最大连接数
+      idle-timeout: 30000      # 空闲连接超时时间（ms）
+      pool-name: HikariCP      # 连接池名称
+      max-lifetime: 1800000    # 连接最大生命周期（ms）
+      connection-timeout: 30000 # 连接超时时间（ms）
+  ```
+- **使用JdbcTemplate操作数据库**
+```
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Service;
+
+@Service
+public class UserService {
+
+    // Spring 自动注入 DataSource 并初始化 JdbcTemplate
+    private final JdbcTemplate jdbcTemplate;
+
+    public UserService(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
+    // 新增
+    public int add(String name, int age, String address) {
+        String sql = "INSERT INTO user(name, age, address) VALUES (?, ?, ?)";
+        return jdbcTemplate.update(sql, name, age, address);
+    }
+
+    // 根据ID查询
+    public User findById(int id) {
+        String sql = "SELECT id, name, age, address FROM user WHERE id = ?";
+        return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> {
+            User user = new User();
+            user.setId(rs.getInt("id"));
+            user.setName(rs.getString("name"));
+            user.setAge(rs.getInt("age"));
+            user.setAddress(rs.getString("address"));
+            return user;
+        }, id);
+    }
+}
+```
+- **SpringBoot对Druid连接池的整合**
+- **引入依赖**
+  ```
+  <dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-jdbc</artifactId>
+  </dependency>
+  <dependency>
+    <groupId>com.mysql</groupId>
+    <artifactId>mysql-connector-j</artifactId>
+    <scope>runtime</scope>
+  </dependency>
+  <!-- Druid 连接池 -->
+  <!-- 替换成这个，支持 SpringBoot 3.x / 4.x -->
+  <dependency>
+    <groupId>com.alibaba</groupId>
+    <artifactId>druid-spring-boot-3-starter</artifactId>
+    <version>1.2.20</version>
+  </dependency>
+  ```
+ - **配置application.yml**
+ ```
+ spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/jdbc_demo?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    type: com.alibaba.druid.pool.DruidDataSource # 指定 Druid 数据源
+    druid:
+      # 连接池配置
+      initial-size: 5        # 初始化连接数
+      min-idle: 5            # 最小空闲连接数
+      max-active: 20         # 最大连接数
+      max-wait: 60000        # 获取连接最大等待时间（ms）
+      time-between-eviction-runs-millis: 60000   # 空闲连接检测间隔
+      min-evictable-idle-time-millis: 300000     # 连接最小空闲时间
+      validation-query: SELECT 1 FROM DUAL      # 验证连接有效性的 SQL
+      test-while-idle: true      # 空闲时检测连接有效性
+      test-on-borrow: false      # 借用连接时不检测（提升性能）
+      test-on-return: false      # 归还连接时不检测
+      pool-prepared-statements: true # 开启 PSCache
+      max-pool-prepared-statement-per-connection-size: 20
+      # 监控配置
+      filters: stat,wall,log4j2 # 开启统计、防注入、日志过滤
+      web-stat-filter:
+        enabled: true           # 开启 Web 监控
+        url-pattern: /*
+        exclusions: "*.js,*.gif,*.jpg,*.png,*.css,*.ico,/druid/*"
+      stat-view-servlet:
+        enabled: true           # 开启监控页面
+        url-pattern: /druid/*
+        allow: 127.0.0.1       # 仅允许本地访问
+        login-username: admin  # 监控页面登录账号
+        login-password: 123456 # 监控页面登录密码
+ ```
+ - **使用JdbcTemplate操作数据库**：跟HikariCP那个代码操作完全一样，JdbcTemplate会自动使用Druid连接池
+ - **访问Druid监控页面**：localhost:8080/druid，输入配置的 login-username 和 login-password，即可查看连接池实时状态，SQL 执行统计（慢查询、执行次数），Web 请求监控，Spring 监控等
+ - **但是遗憾的是我电脑上的IDEA不兼容Druid，所以只能用HikariCP了，但是HikariCP的配置比Druid简单很多，所以还是推荐HikariCP**
+
+
+## 十、MyBatis
+- **MyBatis是一款半自动ORM(Object Relational Mapping)框架，即对象↔ 关系型数据库 自动映射，半自动=SQL自己写，映射帮你做**
+- 做的事情：
+  - 管理数据库连接
+  - 执行SQL
+  - 把ResultSet自动封装成java对象
+- **核心结构**
+```
+请求 → Controller → Service → Mapper（接口）→ Mapper XML(写SQL) → MyBatis 引擎 → 数据库
+```
+- **核心四部分**：
+  - **实体类Entity**：对应表结构
+  - **Mapper接口**：定义方法，方法名对应SQL语句ID，参数和返回值对应SQL参数和结果集
+  - **Mapper XML**：写真正的SQL语句，使用SQL语句ID和Mapper接口对应
+  - **配置文件**：指定mapper位置、数据源
+- 对于JPA，不用写SQL，但是复杂查询SQL不可控。对于MyBatis，简单复杂的SQL都需要自己写，极度灵活，但在重复简单SQL时，代码冗余。MyBatis-Plus，兼顾JPA的方便和、MyBatis的灵活性，即简单SQL语句不用写，复杂的自己手写
+- **MyBatis执行流程**：加载核心配置文件(mybatis-config.xml或application.yml)，构建SqlSessionFactory，创建SqlSession，SqlSession执行Mapper接口方法，找到XML中对应的SQL语句，执行SQL，结果自动映射为java对象，关闭资源。
+
+- **使用MyBatis实现员工管理系统**
+  - **实体类**:在entity包下创建Employee.java,用于操作数据库表
+  ```
+  /**
+   * 员工实体类
+  **/
+  //效果：创建该实体类对应的数据库表，数据库表名称小写
+  @Data   //作用：自动生成getter/setter，toString、equals、hashCode 等方法方法
+  @NoArgsConstructor    //无参构造方法
+  @AllArgsConstructor   //全参构造方法
+  public class Employee {
+    private Integer id;
+    private String name;
+    private String email;
+    private Integer age;
+  }
+  ```
+  - **在service包下创建EmployeeService.java**，用于封装Mapper接口方法
+  ```
+  @Service
+  public class EmployeeService {
+    private final EmployeeMapper employeeMapper;
+    //注入Mapper
+    public EmployeeService(EmployeeMapper employeeMapper){
+        this.employeeMapper = employeeMapper;
+    }
+    public List<Employee> findAll(){
+        return employeeMapper.findAll();
+    }
+    public Employee findById(Integer id){
+        return employeeMapper.findById(id);
+    }
+    public void add(Employee employee){
+        employeeMapper.insert(employee);
+    }
+    public void update(Employee employee){
+        employeeMapper.update(employee);
+    }
+    public void delete(Integer id){
+        employeeMapper.delete(id);
+    }
+  }
+  ```
+  - **Mapper接口**:在mapper包下创建EmployeeMapper.java接口，用于定义方法
+  ```
+  @Mapper
+  public interface EmployeeMapper {
+    //查询全部
+    List<Employee> findAll();
+    //根据id查询
+    Employee findById(Integer id);
+    //添加
+    int insert(Employee employee);
+    //修改
+    int update(Employee employee);
+    //删除
+    int delete(Integer id);
+  }
+  ```
+  - **Mapper XML**:在resources文件夹下创建mapper包，在其下创建EmployeeMapper.xml文件，用于定义SQL语句，对应Mapper接口的方法
+  ```
+  <?xml version="1.0" encoding="UTF-8"?>
+  <!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+  <!-- namespace 必须对应 Mapper 接口全类名 -->
+  <mapper namespace="com.example.emsmybatis.mapper.EmployeeMapper">
+
+    <!-- 查询所有 -->
+    <select id="findAll" resultType="com.example.emsmybatis.entity.Employee">
+        select * from employee
+    </select>
+
+    <!-- 根据ID查询 -->
+    <select id="findById" resultType="com.example.emsmybatis.entity.Employee" parameterType="int">
+        select * from employee where id = #{id}
+    </select>
+
+    <!-- 新增 -->
+    <insert id="insert" parameterType="com.example.emsmybatis.entity.Employee">
+        insert into employee(name, age, email)
+        values(#{name}, #{age}, #{email})
+    </insert>
+
+    <!-- 修改 -->
+    <update id="update" parameterType="com.example.emsmybatis.entity.Employee">
+        update employee
+        set name=#{name}, age=#{age}, email=#{email}
+        where id=#{id}
+    </update>
+
+    <!-- 删除 -->
+    <delete id="delete" parameterType="int">
+        delete from employee where id=#{id}
+    </delete>
+    </mapper>
+  ```
+  - **在配置文件application.yml中添加MyBatis配置**，用于配置数据源和MyBatis
+  ```
+  spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/employee_db?useUnicode=true&characterEncoding=utf8&serverTimezone=GMT%2B8
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  # MyBatis 配置
+  mybatis:
+    #  mapper XML 文件位置
+    mapper-locations: classpath:mapper/*.xml
+
+    #  开启驼峰命名自动映射（数据库 a_column → Java aColumn）
+    configuration:
+      map-underscore-to-camel-case: true
+      log-impl: org.apache.ibatis.logging.stdout.StdOutImpl  # 打印SQL
+  ```
+  - **pom.xml中添加MyBatis依赖和MySQL驱动**
+  - 如果pom.xml中添加了security依赖，则需要添加如下配置：
+  - **创建config包，创建SecurityConfig.java类**，用于登录的操作
+  ```
+  @Configuration
+  @EnableWebSecurity
+  public class SecurityConfig {
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .authorizeHttpRequests(auth -> auth
+                        .anyRequest().authenticated()
+                )
+                //用 SpringSecurity 自带登录页，不用自己写
+                .formLogin(form -> form
+                        .permitAll()
+                )
+                .logout(logout -> logout.permitAll())
+                .csrf(csrf -> csrf.disable());
+
+        return http.build();
+    }
+
+    // 账号：1111   密码：1234567
+    进行登录
+    @Bean
+    public UserDetailsService userDetailsService() {
+        UserDetails user = User.withUsername("1111")
+                .password(passwordEncoder().encode("1234567"))
+                .roles("USER")
+                .build();
+
+        return new InMemoryUserDetailsManager(user);
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+  }
+  ```
+  - **登录界面验证成功后，就需要写EmployeeController.java来跳转到对应的界面，和IndexController.java跳转到首页。并且需要在resources下的templates文件夹下创建相应的界面.html**
+  - **创建controller包，创建EmployeeController.java类**，用于跳转到各个界面
+  ```
+  @Controller
+  @RequestMapping("/employee")
+  public class EmployeeController {
+
+    private final EmployeeService employeeService;
+
+    public EmployeeController (EmployeeService employeeService) {
+        this.employeeService = employeeService;
+    }
+
+    @GetMapping("/list")
+    public String list(Model model){
+        List<Employee> emps = employeeService.findAll();
+        model.addAttribute("emps", emps);
+        return "list";
+    }
+
+    @GetMapping("/addPage")
+    public String addPage(){
+        return "add";
+    }
+
+    @PostMapping("/add")
+    public String add(Employee employee){
+        employeeService.add(employee);
+        return "redirect:/employee/list";
+    }
+
+    @GetMapping("/detail/{id}")
+    public String detail(@PathVariable Integer id, Model model){
+        Employee emp = employeeService.findById(id);
+        model.addAttribute("emp", emp);
+        return "detail";
+    }
+
+    @GetMapping("/delete/{id}")
+    public String delete(@PathVariable Integer id){
+        employeeService.delete(id);
+        return "redirect:/employee/list";
+    }
+  }
+  ```
+  - **创建controller包，创建IndexController.java类**
+  - 这是直接跳转到员工列表页面了
+  ```
+  @Controller
+  public class IndexController {
+    @GetMapping("/")
+    public String index(){
+        return "redirect:/employee/list";
+    }
+  }
+  ```
+  - **在templates文件夹，创建list.html、add.html、detail.html文件，因为在EmployeeController.java类中已经写过了跳转页面的逻辑，所以这里要有跳转的各个页面**
+  ```
+  # add.html:
+  <!DOCTYPE html>
+  <html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+    <title>添加员工</title>
+  </head>
+  <body>
+  <h1>添加员工</h1>
+  <form action="/employee/add" method="post">
+    姓名：<input name="name"><br>
+    年龄：<input name="age"><br>
+    邮箱：<input name="email"><br>
+    <button type="submit">提交</button>
+  </form>
+  </body>
+  </html>
+
+  # detail.html:
+  <!DOCTYPE html>
+  <html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+    <title>员工详情</title>
+  </head>
+  <body>
+  <h1>员工详情</h1>
+  ID：<span th:text="${emp.id}"></span><br>
+  姓名：<span th:text="${emp.name}"></span><br>
+  年龄：<span th:text="${emp.age}"></span><br>
+  邮箱：<span th:text="${emp.email}"></span><br>
+  <br>
+  <a href="/employee/list">返回列表</a>
+  </body>
+  </html>
+
+  # list.html:
+  <!DOCTYPE html>
+  <html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+    <title>员工列表</title>
+  </head>
+  <body>
+  <h1>员工列表</h1>
+  <table border="1">
+    <tr>
+        <th>ID</th>
+        <th>姓名</th>
+        <th>年龄</th>
+        <th>邮箱</th>
+        <th>操作</th>
+    </tr>
+    <tr th:each="emp : ${emps}">
+        <td th:text="${emp.id}"></td>
+        <td th:text="${emp.name}"></td>
+        <td th:text="${emp.age}"></td>
+        <td th:text="${emp.email}"></td>
+        <td>
+            <a th:href="@{/employee/delete/{id}(id=${emp.id})}">删除</a>
+        </td>
+    </tr>
+  </table>
+  <br>
+  <a href="/employee/addPage">去添加员工</a>
+  </body>
+  </html>
+  ```
+- **注意：**
+  - **==XML 的 namespace 必须等于 Mapper 接口的全类名==**
+  - 作用：告诉 MyBatis 这个 XML 是和哪个接口绑定的，写错会导致找不到 Mapper，启动报错
+  ```
+  <mapper namespace="com.example.emsmybatis.mapper.EmployeeMapper">
+  ```
+  - **==XML 的 id 必须等于 Mapper 接口方法名==**
+  - MyBatis 会根据方法名，找到 XML 中 id 相同的 SQL 语句执行。不一致会报 StatementNotFoundException
+  ```
+  // Mapper 接口方法
+  List<Employee> findAll();
+
+  <!-- XML 中对应 SQL 的 id 必须和方法名完全一致 -->
+  <select id="findAll" resultType="com.example.emsmybatis.entity.Employee">
+    select * from employee
+  </select>
+  ```
+  - **==参数传递用 #{}，安全防 SQL 注入==**
+  - #{id} 会被 MyBatis 处理为 PreparedStatement 的占位符 ?，预编译执行。**==绝对不要用 ${}，它是字符串拼接，会导致 SQL 注入漏洞==**
+  ```
+  <select id="findById" resultType="com.example.emsmybatis.entity.Employee">
+    select * from employee where id = #{id}
+  </select>
+  ```
