@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>员工详情</title>
+</head>
+<body>
+<h1>员工详情</h1>
+ID：<span th:text="${emp.id}"></span><br>
+姓名：<span th:text="${emp.name}"></span><br>
+年龄：<span th:text="${emp.age}"></span><br>
+邮箱：<span th:text="${emp.email}"></span><br>
+<br>
+<a href="/employee/list">返回列表</a>
+</body>
+</html>

@@ -2,18 +2,31 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <annotationProcessing>
+      <profile default="true" name="Default" enabled="true" />
       <profile name="Maven default annotation processors profile" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="EMS-MyBatis" />
         <module name="hello_world" />
         <module name="demo0" />
         <module name="demo_hello_world" />
+      </profile>
+      <profile name="Annotation profile for Employee-Management-System" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.44/lombok-1.18.44.jar" />
+        </processorPath>
+        <module name="Employee-Management-System" />
       </profile>
     </annotationProcessing>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="EMS-MyBatis" options="-parameters" />
+      <module name="Employee-Management-System" options="-parameters" />
       <module name="demo0" options="-parameters" />
       <module name="demo_hello_world" options="-parameters" />
       <module name="hello_world" options="-parameters" />

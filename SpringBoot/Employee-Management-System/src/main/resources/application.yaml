@@ -4,6 +4,7 @@ spring:
     username: root
     password: 123456
     driver-class-name: com.mysql.cj.jdbc.Driver
+  # jpa原先就有，不用动
   jpa:
     hibernate:
       ddl-auto: update
@@ -11,7 +12,6 @@ spring:
     properties:
       hibernate:
         format_sql: true
-
 
 # datasource：配置 MySQL 数据库连接信息（URL、用户名、密码、驱动类）。
 # jpa.hibernate.ddl-auto: update：Hibernate 会自动根据实体类更新数据库表结构。

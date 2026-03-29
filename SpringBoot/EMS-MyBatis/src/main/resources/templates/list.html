@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>员工列表</title>
+</head>
+<body>
+<h1>员工列表</h1>
+<table border="1">
+    <tr>
+        <th>ID</th>
+        <th>姓名</th>
+        <th>年龄</th>
+        <th>邮箱</th>
+        <th>操作</th>
+    </tr>
+    <tr th:each="emp : ${emps}">
+        <td th:text="${emp.id}"></td>
+        <td th:text="${emp.name}"></td>
+        <td th:text="${emp.age}"></td>
+        <td th:text="${emp.email}"></td>
+        <td>
+            <a th:href="@{/employee/delete/{id}(id=${emp.id})}">删除</a>
+        </td>
+    </tr>
+</table>
+<br>
+<a href="/employee/addPage">去添加员工</a>
+</body>
+</html>
