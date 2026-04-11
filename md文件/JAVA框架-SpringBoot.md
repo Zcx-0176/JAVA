@@ -1250,22 +1250,25 @@ public class UserService {
   </html>
 
   # detail.html:
-  <!DOCTYPE html>
-  <html lang="zh-CN">
-  <head>
-    <meta charset="UTF-8">
-    <title>员工详情</title>
-  </head>
-  <body>
-  <h1>员工详情</h1>
-  ID：<span th:text="${emp.id}"></span><br>
-  姓名：<span th:text="${emp.name}"></span><br>
-  年龄：<span th:text="${emp.age}"></span><br>
-  邮箱：<span th:text="${emp.email}"></span><br>
-  <br>
-  <a href="/employee/list">返回列表</a>
-  </body>
-  </html>
+    <!DOCTYPE html>
+    <html lang="zh-CN">
+    <head>
+        <meta charset="UTF-8">
+        <title>员工详情</title>
+    </head>
+    <body>
+    <h1>员工详情</h1>
+    <hr>
+
+    <h3>ID：[[${emp.id}]]</h3>
+    <h3>姓名：[[${emp.name}]]</h3>
+    <h3>年龄：[[${emp.age}]]</h3>
+    <h3>邮箱：[[${emp.email}]]</h3>
+
+    <br><br>
+    <a href="/employee/list">← 返回列表</a>
+    </body>
+    </html>
 
   # list.html:
   <!DOCTYPE html>
@@ -1290,6 +1293,9 @@ public class UserService {
         <td th:text="${emp.age}"></td>
         <td th:text="${emp.email}"></td>
         <td>
+             <!-- 👇 查看详情按钮（跳转到详情页） -->
+            <a th:href="@{/employee/detail/{id}(id=${emp.id})}">查看详情</a>
+            <!-- 👇 删除按钮（删除员工） -->
             <a th:href="@{/employee/delete/{id}(id=${emp.id})}">删除</a>
         </td>
     </tr>
@@ -1323,3 +1329,421 @@ public class UserService {
     select * from employee where id = #{id}
   </select>
   ```
+- **动态SQL**
+- **根据不同的条件，自动拼接不同的SQL。**如只传姓名->按姓名查，只传年龄->按年龄查，姓名和年龄都传->按姓名和年龄查，都不传送->查所有。不用在 Java 里拼字符串，MyBatis 帮你智能拼接
+- **==动态SQL五大核心标签**
+  - **< if >:判断条件**
+  - 作用：满足条件就拼接SQL，不满足就不拼
+  - 语法：
+  ```
+    <if test="条件">
+        要拼接的 SQL
+    </if>
+    
+    如按姓名+年龄模糊查询
+    <select id="findByCondition" resultType="Employee">
+        select * from employee
+        where 1=1  <!-- 用来占位，保证语法正确 -->
+        <if test="name != null and name != ''">
+        and name like concat('%', #{name}, '%')
+        </if>
+        <if test="age != null">
+        and age = #{age}
+        </if>
+    </select>
+  ```
+  - **< where >**:自动优化where条件
+  - 作用：自动去掉多于的and/or，没有条件时，自动去掉where关键字
+  ```
+    <select id="findByCondition" resultType="Employee">
+        select * from employee
+        <where>
+            <if test="name != null and name != ''">
+                and name like concat('%', #{name}, '%')
+            </if>
+            <if test="age != null">
+                and age = #{age}
+            </if>
+        </where>
+    </select>
+    效果：
+    没传任何条件 → select * from employee
+    只传年龄 → select * from employee where age = ?
+    都传 → select * from employee where name like ? and age = ?
+    自动处理and
+  ```
+  - **< set >**:专门用于动态更新
+  - 作用：修改时只更新有值的字段，没传的字段不修改
+  ```
+  动态更新员工
+    <update id="updateDynamic">
+        update employee
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="age != null">age = #{age},</if>
+            <if test="email != null">email = #{email},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    自动去掉最后多余的逗号
+    只传 name → 只更新 name
+    只传 age → 只更新 age
+    三个都传 → 三个一起更新
+  ```
+  - **< choose > + < when > + < otherwise >**:多选一
+  - 作用：只选一个条件执行，满足一个就不看其他
+  ```
+    <select id="findChoose" resultType="Employee">
+        select * from employee
+        <where>
+            <choose>
+                <when test="name != null">
+                    name = #{name}
+                </when>
+                <when test="age != null">
+                    age = #{age}
+                </when>
+                <otherwise>
+                    1=1
+                </otherwise>
+            </choose>
+        </where>
+    </select>
+
+    有 name → 只按 name 查询
+    没有 name 有 age → 只按 age 查询
+    都没有 → 查询全部
+  ```
+  - **< foreach >**:循环 → 批量操作核心
+  - 作用：批量删除、新增、查询(in查询)
+  - 批量删除(最常用)
+  ```
+    <delete id="deleteBatch">
+        delete from employee where id in
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    collection="list"：传入的是 List 集合
+    item="id"：循环变量名
+    open="("：循环开始前加 (
+    separator=","：中间加逗号
+    close=")": 循环结束后加 )
+    
+    最终生成SQL：delete from employee where id in (?, ?, ?)
+  ```
+  - 批量新增(超高效率)
+  ```
+    <insert id="insertBatch">
+        insert into employee(name, age, email)
+        values
+        <foreach collection="list" item="emp" separator=",">
+            (#{emp.name}, #{emp.age}, #{emp.email})
+        </foreach>
+    </insert>
+
+    一次插入 100 条数据，只执行一次 SQL，速度极快
+  ```
+  - 批量查询(in查询)
+  ```
+    <select id="selectBatch" resultType="Employee">
+        select * from employee where id in
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    最终生成SQL：select * from employee where id in (?, ?, ?)
+  ```
+- **在原先的员工管理系统添加上述动态SQL功能**
+  - **在Mapper接口方法中添加上述功能**
+  ```
+  //动态条件查询
+    List<Employee> findByCondition(Employee employee);
+    //动态更新
+    int updateDynamic(Employee employee);
+    //批量删除
+    int deleteBatch(List<Integer> ids);
+    //批量插入
+    int insertBatch(List<Employee> employees);
+    //choose查询
+    List<Employee> findByChoose(Employee employee);
+  ```
+  - **在XML中添加实现上述功能的SQL**
+  ```
+   <!-- 动态条件查询 -->
+    <select id="findByCondition" resultType="com.example.emsmybatis.entity.Employee">
+        select * from employee
+        <where>
+            <if test="name != null and name != ''">
+                and name like concat('%', #{name}, '%')
+            </if>
+            <if test="age != null">
+                and age = #{age}
+            </if>
+        </where>
+    </select>
+
+    <!-- 动态更新 -->
+    <update id="updateDynamic" parameterType="com.example.emsmybatis.entity.Employee">
+        update employee
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="age != null">age = #{age},</if>
+            <if test="email != null">email = #{email},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!-- 批量删除 -->
+    <delete id="deleteBatch">
+        delete from employee where id in
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <!-- 批量新增 -->
+    <insert id="insertBatch">
+        insert into employee(name,age,email) values
+        <foreach collection="list" item="emp" separator=",">
+            (#{emp.name}, #{emp.age}, #{emp.email})
+        </foreach>
+    </insert>
+
+    <!-- choose 多选一查询 -->
+    <select id="findChoose" resultType="com.example.emsmybatis.entity.Employee">
+        select * from employee
+        <where>
+            <choose>
+                <when test="name != null">
+                    name = #{name}
+                </when>
+                <when test="age != null">
+                    age = #{age}
+                </when>
+                <otherwise>
+                    1=1
+                </otherwise>
+            </choose>
+        </where>
+    </select>
+  ```
+  - **在service中实现这些接口方法，写业务逻辑**
+  ```
+  /**
+     * 动态条件查询
+     */
+    public List<Employee> search(String name, Integer age) {
+        Employee condition = new Employee();
+        condition.setName(name);
+        condition.setAge(age);
+        return employeeMapper.findByCondition(condition);
+    }
+
+    /**
+     * 动态更新：只更新年龄
+     */
+    public void updateAgeOnly(Integer id, Integer age) {
+        Employee employee = new Employee();
+        employee.setId(id);
+        employee.setAge(age);
+        employeeMapper.updateDynamic(employee);
+    }
+
+    /**
+     * 批量新增：自动构造3条测试数据
+     */
+    public void addBatchTestData() {
+        Employee e1 = new Employee(null, "批量一号", "piliang1@test.com", 20);
+        Employee e2 = new Employee(null, "批量二号", "piliang2@test.com", 21);
+        Employee e3 = new Employee(null, "批量三号", "piliang3@test.com",22);
+        employeeMapper.insertBatch(List.of(e1, e2, e3));
+    }
+
+    /**
+     * 批量删除
+     */
+    public void deleteBatch(List<Integer> ids) {
+        employeeMapper.deleteBatch(ids);
+    }
+    // CHOOSE 查询
+    public List<Employee> chooseQuery(Employee condition) {
+        return employeeMapper.findByChoose(condition);
+    }
+  ```
+  - **在controller中接收参数，调用service，负责跳转，能让其在浏览器上访问显示**
+  ```
+  // 动态查询
+    @GetMapping("/search")
+    public String search(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) Integer age,
+            Model model
+    ) {
+        model.addAttribute("emps", employeeService.search(name, age));
+        return "list";
+    }
+
+    // 动态更新年龄
+    @GetMapping("/dynamicUpdate/{id}")
+    public String dynamicUpdate(@PathVariable Integer id, Integer age) {
+        employeeService.updateAgeOnly(id, age);
+        return "redirect:/employee/list";
+    }
+
+    // 批量新增
+    @GetMapping("/batchAdd")
+    public String batchAdd() {
+        employeeService.addBatchTestData();
+        return "redirect:/employee/list";
+    }
+
+    // 批量删除
+    @GetMapping("/deleteBatch")
+    public String deleteBatch() {
+        employeeService.deleteBatch(Arrays.asList(1,2,3));
+        return "redirect:/employee/list";
+    }
+    @GetMapping("/choose")
+    public String choose(String name, Integer age, Model model) {
+        Employee condition = new Employee();
+        condition.setName(name);
+        condition.setAge(age);
+        List<Employee> list = employeeService.chooseQuery(condition);
+        model.addAttribute("emps", list);
+        return "list";
+    }
+
+  ```
+  - **补充list.html页面，让上述功能显示在页面上，可视化**
+  ```
+    <a href="/employee/batchAdd">【演示：批量新增3人】</a>
+    <a href="/employee/deleteBatch">【演示：批量删除1,2,3】</a>
+
+    <br/><br/>
+
+    <form action="/employee/search" method="get">
+        姓名：<input name="name" placeholder="输入姓名">
+        年龄：<input name="age" placeholder="输入年龄">
+        <button type="submit">动态查询</button>
+    </form>
+    <!-- 新增 CHOOSE 查询（优先级：姓名 > 年龄） -->
+    <h3>CHOOSE 查询（优先姓名，姓名为空则查年龄）</h3>
+    <form action="/employee/choose" method="get">
+        姓名：<input name="name" placeholder="输入姓名">
+        年龄：<input name="age" placeholder="输入年龄">
+        <button type="submit">CHOOSE 查询</button>
+    </form>
+  ```
+- **多表查询**
+- 一对一：一个员工对应一个部门
+- 一对多：一个部门底下有多个员工
+- **完善之前的员工管理系统，增加显示员工表的部门id，表自带的信息，并且后面加一个按钮，能够显示该部门id下的所有员工信息，并且在现实详情信息时，把该员工所在的部门名称显示出来**
+  - **首先创建部门实体类和部门表**
+  ```
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public class Department {
+        private Integer id;
+        private String dept_name;
+    }
+  ```
+  - **修改员工实体类，添加部门id，添加部门对象，为了在显示员工详情时，能够显示部门名称，以及查询该部门下的所有员工信息，所以添加**
+  ```
+  private Integer dept_id;
+  private Department department;
+  ```
+  - **Mapper接口：添加多表查询的方法**
+  ```
+  //多表查询
+    List<Employee> findEmployeeWithDept(Integer dept_id);
+  ```
+  - **Service接口：添加多表查询的方法**
+  ```
+  // 联表查询：根据 dept_id 查询该部门下所有员工 + 部门信息
+    public List<Employee> getEmployeesByDeptId(Integer dept_id) {
+        return employeeMapper.findEmployeeWithDept(dept_id);
+    }
+  ```
+  - **Controller：调用多表查询的方法**
+  ```
+  // 联表查询接口：根据 dept_id 查询部门下所有员工
+    @GetMapping("/dept/{dept_id}")
+    public String getEmployeesByDept(@PathVariable Integer dept_id, Model model) {
+        List<Employee> emps = employeeService.getEmployeesByDeptId(dept_id);
+        model.addAttribute("emps", emps);
+        return "list"; // 复用 list.html 展示结果
+    }
+  ```
+  - **xml文件：添加多表查询的sql语句**
+  ```
+  <!-- 联表查询 resultMap：员工 + 部门 -->
+    <resultMap id="EmployeeWithDeptMap" type="com.example.emsmybatis.entity.Employee">
+        <!-- 员工表字段映射 -->
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="age" property="age"/>
+        <result column="email" property="email"/>
+        <result column="dept_id" property="dept_id"/>
+
+        <!-- 一对一关联：部门表 -->
+        <association property="department" javaType="com.example.emsmybatis.entity.Department">
+            <id column="dept_id" property="id"/>
+            <result column="dept_name" property="dept_name"/>
+        </association>
+    </resultMap>
+
+    <!-- 联表查询 SQL：根据 dept_id 查询员工 + 部门 -->
+    <select id="findEmployeeWithDept" resultMap="EmployeeWithDeptMap">
+        SELECT
+        e.*,
+        d.id AS dept_id,
+        d.dept_name
+        FROM employee e
+        LEFT JOIN department d ON e.dept_id = d.id
+        WHERE e.dept_id = #{dept_id}
+    </select>
+  ```
+  - **list.html页面：添加多表查询的按钮**
+  ```
+  <!-- 在操作列添加按钮，点击查看该部门下所有员工 -->
+
+            <a th:href="@{/employee/dept/{dept_id}(dept_id=${emp.dept_id})}">查看部门员工</a>
+
+  ```
+  - **对以往的方法和页面进行修改**
+  - **list.html页面：添加部门ID**
+  - **detail.html页面：添加部门名称**
+  - **xml中findAll 使用resultType="Employee"，导致 dept_id 和 department 映射不全，所以需要使用使用 resultMap**
+  ```
+    <select id="findAll" resultMap="EmployeeWithDeptMap">
+        SELECT
+            e.*,
+            d.id AS dept_id,
+            d.dept_name
+        FROM employee e
+        LEFT JOIN department d ON e.dept_id = d.id
+    </select>
+    这样 findAll 会
+    把 dept_id 正确映射到 Employee.dept_id
+    把 department 信息加载到 Employee.department
+  ```
+  - **xml中findById 使用resultType="Employee"，导致 dept_id 和 department 映射不全，所以需要使用使用 resultMap**
+  ```
+    <select id="findById" resultMap="EmployeeWithDeptMap">
+        SELECT
+            e.*,
+            d.id AS dept_id,
+            d.dept_name
+        FROM employee e
+        LEFT JOIN department d ON e.dept_id = d.id
+        WHERE e.id = #{id}
+    </select>
+  ```
+  - **xml中的insert,批量添加，update都需要加上部门ID这个属性**
+  
+
