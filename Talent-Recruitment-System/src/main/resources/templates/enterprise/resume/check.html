@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>简历查看</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .back {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 8px 16px;
+            background: #1677ff;
+            color: white !important;
+            border-radius: 4px;
+            text-decoration: none !important;
+            transition: background 0.3s;
+        }
+        .back:hover {
+            background: #4096ff;
+        }
+    </style>
+</head>
+<body class="bg-light">
+<div class="container mt-4">
+    <a href="/enterprise/page/index" class="back">← 返回企业首页</a>
+    <h3 class="mb-3">简历列表</h3>
+    <div class="mb-3">
+        <input type="text" id="school" class="form-control w-50 d-inline-block" placeholder="按毕业学校搜索">
+        <button class="btn btn-primary" onclick="search()">搜索</button>
+    </div>
+    <table class="table table-bordered table-striped shadow">
+        <thead class="table-dark">
+        <tr>
+            <th>姓名</th>
+            <th>性别</th>
+            <th>最高学历</th>
+            <th>毕业学校</th>
+            <th>专业</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody id="resumeList"></tbody>
+    </table>
+</div>
+<script>
+    function search() {
+        const school = document.getElementById("school").value;
+        fetch(`/resume/getByCondition?graduateSchool=${school}`).then(res => res.json()).then(r => {
+            if (r.code === 200) {
+                const list = r.data;
+                const tbody = document.getElementById("resumeList");
+                tbody.innerHTML = "";
+                list.forEach(re => {
+                    tbody.innerHTML += `
+                    <tr>
+                        <td>${re.realName}</td>
+                        <td>${re.gender}</td>
+                        <td>${re.highestEducation}</td>
+                        <td>${re.graduateSchool}</td>
+                        <td>${re.major}</td>
+                        <td>
+                            <button class="btn btn-sm btn-info" onclick="showDetail(${re.id})">查看详情</button>
+                        </td>
+                    </tr>`;
+                });
+            }
+        });
+    }
+    function showDetail(id) {
+        fetch(`/resume/getById?id=${id}`).then(res => res.json()).then(r => {
+            if (r.code === 200) {
+                const d = r.data;
+                let info = "简历详情\n";
+                info += "姓名：" + d.realName + "\n";
+                info += "性别：" + d.gender + "\n";
+                info += "学历：" + d.highestEducation + "\n";
+                info += "学校：" + d.graduateSchool + "\n";
+                info += "专业：" + d.major + "\n";
+                info += "技能：" + d.skills + "\n";
+                info += "项目经历：" + d.projectExperience + "\n";
+                info += "自我评价：" + d.selfEvalution;
+                alert(info);
+            }
+        });
+    }
+    search();
+</script>
+</body>
+</html>

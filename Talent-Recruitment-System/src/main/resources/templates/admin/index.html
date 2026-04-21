@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理员后台首页</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        /* 顶部导航栏 */
+        .header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px 40px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 500;
+        }
+
+        .welcome {
+            margin-top: 10px;
+            font-size: 16px;
+            color: #ecf0f1;
+        }
+
+        /* 主内容区 */
+        .container {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .menu-title {
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: #2c3e50;
+            border-left: 4px solid #3498db;
+            padding-left: 12px;
+        }
+
+        /* 功能菜单卡片 */
+        .menu-card {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+        }
+
+        /* 按钮样式 */
+        .menu-btn {
+            display: inline-block;
+            padding: 12px 24px;
+            margin: 8px;
+            background-color: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            font-size: 15px;
+        }
+
+        .menu-btn:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(52, 152, 219, 0.2);
+        }
+
+        .logout-btn {
+            background-color: #e74c3c;
+        }
+
+        .logout-btn:hover {
+            background-color: #c0392b;
+        }
+    </style>
+</head>
+<body>
+
+<!-- 顶部导航 -->
+<div class="header">
+    <h1>人才招聘系统 - 管理员后台</h1>
+    <div class="welcome">欢迎你：[[${session.loginAdmin.adminName}]]</div>
+</div>
+
+<!-- 功能菜单 -->
+<div class="container">
+    <h3 class="menu-title">功能菜单</h3>
+    <div class="menu-card">
+        <a href="/admin/page/list" class="menu-btn">管理员列表</a>
+        <a href="/admin/page/add" class="menu-btn">添加管理员</a>
+        <a href="/admin/page/apply/list" class="menu-btn">会员申请审核</a>
+        <a href="/logout" class="menu-btn logout-btn">退出登录</a>
+    </div>
+</div>
+
+</body>
+</html>

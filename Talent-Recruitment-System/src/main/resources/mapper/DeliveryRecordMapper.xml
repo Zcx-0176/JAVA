@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zcx.talentrecruitmentsystem.mapper.DeliveryRecordMapper">
+    <select id="selectJobPostByUserId" parameterType="long" resultType="JobPostWithDeliveryVO">
+        select  j.*,dr.delivery_time as deliveryTime,dr.status as deliveryStatus
+        from delivery_record dr
+        inner join job_post j
+        on dr.job_id = j.id
+        where dr.user_id = #{userId}
+        order by dr.delivery_time DESC
+    </select>
+    
+    <select id="selectDeliByEnterpriseId" parameterType="long" resultType="DeliveryRecordVO">
+        select dr.*,j.job_name,u.username
+        from delivery_record dr
+        join job_post j on j.id = dr.job_id
+        join user_info u on u.id = dr.user_id
+        where j.enterprise_id = #{enterpriseId}
+        order by dr.delivery_time desc
+    </select>
+    
+    <select id="updateDeliveryStatus">
+        update delivery_record
+        set status = #{status}
+        where id=#{id}
+    </select>
+
+    <insert id="insertDelivery">
+        insert into delivery_record(user_id, job_id, delivery_time, status)
+        values(#{userId}, #{jobId}, now(), 0)
+    </insert>
+</mapper>

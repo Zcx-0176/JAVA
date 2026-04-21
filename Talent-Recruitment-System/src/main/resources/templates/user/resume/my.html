@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>我的简历</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .back {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 8px 16px;
+            background: #1677ff;
+            color: white !important;
+            border-radius: 4px;
+            text-decoration: none !important;
+            transition: background 0.3s;
+        }
+        .back:hover {
+            background: #4096ff;
+        }
+        .card { border-radius: 10px; box-shadow: 0 1px 5px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body class="bg-light">
+<div class="container mt-4">
+    <a href="/user/page/index" class="back">← 返回首页</a>
+    <h3 class="mb-3">我的简历</h3>
+    <div id="resumeArea" class="card p-4"></div>
+</div>
+
+<script>
+    const userId = 1;
+    load();
+
+    function load() {
+        fetch("/resume/getByUserId?userId="+userId).then(res=>res.json()).then(r=>{
+            if(r.code === 200 && r.data){
+                let d = r.data;
+                document.getElementById("resumeArea").innerHTML = `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>性别：</strong>${d.gender || '未填写'}</p>
+                            <p><strong>身份证号：</strong>${d.idCard || '未填写'}</p>
+                            <p><strong>出生日期：</strong>${d.birthDate || '未填写'}</p>
+                            <p><strong>民族：</strong>${d.nation || '未填写'}</p>
+                            <p><strong>政治面貌：</strong>${d.politicalStatus || '未填写'}</p>
+                            <p><strong>婚姻状况：</strong>${d.maritalStatus || '未填写'}</p>
+                            <p><strong>籍贯：</strong>${d.nativePlace || '未填写'}</p>
+                            <p><strong>现居城市：</strong>${d.currentCity || '未填写'}</p>
+                            <p><strong>最高学历：</strong>${d.highestEducation || '未填写'}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>毕业院校：</strong>${d.graduateSchool || '未填写'}</p>
+                            <p><strong>院系：</strong>${d.department || '未填写'}</p>
+                            <p><strong>专业：</strong>${d.major || '未填写'}</p>
+                            <p><strong>教育类型：</strong>${d.educationType || '未填写'}</p>
+                            <p><strong>学制：</strong>${d.schoolSystem || '未填写'}</p>
+                            <p><strong>外语水平：</strong>${d.foreignLevel || '未填写'}</p>
+                            <p><strong>期望工作城市：</strong>${d.jobCity || '未填写'}</p>
+                            <p><strong>期望职位：</strong>${d.expectedPosition || '未填写'}</p>
+                            <p><strong>技能：</strong>${d.skills || '未填写'}</p>
+                        </div>
+                    </div>
+                    <hr class="my-3">
+                    <p><strong>项目经验：</strong><br>${d.projectExperience || '未填写'}</p>
+                    <p><strong>自我评价：</strong><br>${d.selfEvalution || '未填写'}</p>
+                    <hr class="my-3">
+                    <button class="btn btn-warning w-100" onclick="location.href='/user/page/resume/update'">修改简历</button>
+                `;
+            }else{
+                document.getElementById("resumeArea").innerHTML = `
+                    <div class="alert alert-warning">暂无简历，请先添加</div>
+                    <a href="/user/page/resume/add" class="btn btn-primary w-100">去添加简历</a>
+                `;
+            }
+        })
+    }
+</script>
+</body>
+</html>

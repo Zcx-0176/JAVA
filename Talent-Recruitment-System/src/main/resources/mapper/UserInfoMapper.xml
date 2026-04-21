@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zcx.talentrecruitmentsystem.mapper.UserInfoMapper">
+    <insert id="insertUser" parameterType="UserInfo">
+        insert into user_info(
+        account,username,email,password,is_vip)
+        values(#{account},#{username},#{email},
+        #{password},0)
+    </insert>
+
+    <delete id="deleteUserById" parameterType="long">
+        delete from user_info where id=#{id}
+    </delete>
+
+    <update id="updateUser" parameterType="UserInfo">
+        update user_info
+        set
+        account=#{account},
+        username=#{username},
+        email=#{email},
+        password=#{password}
+        where id=#{id}
+    </update>
+
+    <select id="selectUserById" parameterType="long" resultType="UserInfo">
+        select * from user_info where id=#{id}
+    </select>
+
+    <select id="selectAllUsers" resultType="UserInfo">
+        select * from user_info
+    </select>
+
+    <select id="selectByAccount" resultType="UserInfo">
+        select * from user_info where account=#{account}
+    </select>
+</mapper>

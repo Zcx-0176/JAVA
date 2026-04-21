@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>会员申请审核</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;font-family:"Microsoft YaHei",sans-serif}
+        body{background:#f5f7fa;padding:30px}
+        .wrap{max-width:1000px;margin:0 auto}
+        h1{font-size:24px;margin-bottom:20px}
+        .back{display:inline-block;margin-bottom:15px;color:#1677ff}
+        table{width:100%;background:white;border-radius:8px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,0.08);border-collapse:collapse}
+        th,td{padding:12px;text-align:center;border-bottom:1px solid #eee}
+        th{background:#1677ff;color:white}
+        tr:hover{background:#f9f9f9}
+        .pass{color:green;font-weight:bold;margin-right:10px;cursor:pointer}
+        .refuse{color:red;font-weight:bold;cursor:pointer}
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <a href="/admin/page/index" class="back">← 返回首页</a>
+    <h1>会员申请审核</h1>
+
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>用户账号</th>
+            <th>申请状态</th>
+            <th>操作</th>
+        </tr>
+        <tbody id="applyBody"></tbody>
+    </table>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+    // 加载列表
+    function load(){
+        axios.get("/admin/apply/list").then(res => {
+            if(res.data.code !== 200) return
+            let list = res.data.data
+            let html = ""
+            list.forEach(a => {
+                let statusTxt = a.status === 0 ? "待审核" : a.status === 1 ? "已通过" : "已拒绝"
+
+                html += `
+                <tr>
+                    <td>${a.id}</td>
+                    <td>${a.account}</td>
+                    <td>${statusTxt}</td>
+                    <td>
+                        <span class="pass" onclick="audit(${a.id},1,'${a.account}')">通过</span>
+                        <span class="refuse" onclick="audit(${a.id},2,'${a.account}')">拒绝</span>
+                    </td>
+                </tr>`
+            })
+            document.querySelector("#applyBody").innerHTML = html
+        })
+    }
+
+    // 极简审核：只传 id、status、account，不判断任何用户类型！
+    function audit(id, status, account){
+        let msg = status === 1 ? "确定通过？" : "确定拒绝？";
+        if(!confirm(msg)) return;
+
+        axios.post("/admin/apply/audit", null, {
+            params: { id, status, account }
+        }).then(res => {
+            alert(res.data.msg);
+            load();
+        }).catch(err => {
+            alert("操作失败");
+        });
+    }
+
+    load()
+</script>
+</body>
+</html>

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>修改简历</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .back {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 8px 16px;
+            background: #1677ff;
+            color: white !important;
+            border-radius: 4px;
+            text-decoration: none !important;
+            transition: background 0.3s;
+        }
+        .back:hover {
+            background: #4096ff;
+        }
+        .card { border-radius: 10px; box-shadow: 0 1px 5px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body class="bg-light">
+<div class="container mt-4">
+    <a href="/user/page/resume/my" class="back">← 返回简历</a>
+    <h3 class="mb-3">修改简历</h3>
+
+    <div class="card p-4">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label">性别</label>
+                <select id="gender" class="form-control">
+                    <option value="男">男</option>
+                    <option value="女">女</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">身份证号</label>
+                <input id="idCard" class="form-control">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">出生日期</label>
+                <input type="date" id="birthDate" class="form-control">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">民族</label>
+                <input id="nation" class="form-control">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">政治面貌</label>
+                <input id="politicalStatus" class="form-control">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">婚姻状况</label>
+                <select id="maritalStatus" class="form-control">
+                    <option value="未婚">未婚</option>
+                    <option value="已婚">已婚</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">籍贯</label>
+                <input id="nativePlace" class="form-control">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">现居城市</label>
+                <input id="currentCity" class="form-control">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">最高学历</label>
+                <input id="highestEducation" class="form-control">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">毕业院校</label>
+                <input id="graduateSchool" class="form-control">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">院系</label>
+                <input id="department" class="form-control">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">专业</label>
+                <input id="major" class="form-control">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">教育类型</label>
+                <input id="educationType" class="form-control">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">学制</label>
+                <input id="schoolSystem" class="form-control">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">外语水平</label>
+                <input id="foreignLevel" class="form-control">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">期望工作城市</label>
+                <input id="jobCity" class="form-control">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">期望职位</label>
+                <input id="expectedPosition" class="form-control">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">技能</label>
+                <input id="skills" class="form-control">
+            </div>
+            <div class="col-md-12">
+                <label class="form-label">项目经验</label>
+                <textarea id="projectExperience" class="form-control" rows="3"></textarea>
+            </div>
+            <div class="col-md-12">
+                <label class="form-label">自我评价</label>
+                <textarea id="selfEvalution" class="form-control" rows="3"></textarea>
+            </div>
+        </div>
+        <button class="btn btn-warning w-100 py-2 mt-4" onclick="update()">保存修改</button>
+    </div>
+</div>
+
+<script>
+    const userId = 1;
+    let resumeId;
+    load();
+
+    function load() {
+        fetch("/resume/getByUserId?userId="+userId).then(res=>res.json()).then(r=>{
+            resumeId = r.data.id;
+            document.getElementById("gender").value = r.data.gender || '';
+            document.getElementById("idCard").value = r.data.idCard || '';
+            document.getElementById("birthDate").value = r.data.birthDate || '';
+            document.getElementById("nation").value = r.data.nation || '';
+            document.getElementById("politicalStatus").value = r.data.politicalStatus || '';
+            document.getElementById("maritalStatus").value = r.data.maritalStatus || '';
+            document.getElementById("nativePlace").value = r.data.nativePlace || '';
+            document.getElementById("currentCity").value = r.data.currentCity || '';
+            document.getElementById("highestEducation").value = r.data.highestEducation || '';
+            document.getElementById("graduateSchool").value = r.data.graduateSchool || '';
+            document.getElementById("department").value = r.data.department || '';
+            document.getElementById("major").value = r.data.major || '';
+            document.getElementById("educationType").value = r.data.educationType || '';
+            document.getElementById("schoolSystem").value = r.data.schoolSystem || '';
+            document.getElementById("foreignLevel").value = r.data.foreignLevel || '';
+            document.getElementById("jobCity").value = r.data.jobCity || '';
+            document.getElementById("expectedPosition").value = r.data.expectedPosition || '';
+            document.getElementById("skills").value = r.data.skills || '';
+            document.getElementById("projectExperience").value = r.data.projectExperience || '';
+            document.getElementById("selfEvalution").value = r.data.selfEvalution || '';
+        })
+    }
+
+    function update() {
+        fetch("/resume/update", {
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({
+                id: resumeId,
+                userId: userId,
+                gender: document.getElementById("gender").value,
+                idCard: document.getElementById("idCard").value,
+                birthDate: document.getElementById("birthDate").value,
+                nation: document.getElementById("nation").value,
+                politicalStatus: document.getElementById("politicalStatus").value,
+                maritalStatus: document.getElementById("maritalStatus").value,
+                nativePlace: document.getElementById("nativePlace").value,
+                currentCity: document.getElementById("currentCity").value,
+                highestEducation: document.getElementById("highestEducation").value,
+                graduateSchool: document.getElementById("graduateSchool").value,
+                department: document.getElementById("department").value,
+                major: document.getElementById("major").value,
+                educationType: document.getElementById("educationType").value,
+                schoolSystem: document.getElementById("schoolSystem").value,
+                foreignLevel: document.getElementById("foreignLevel").value,
+                jobCity: document.getElementById("jobCity").value,
+                expectedPosition: document.getElementById("expectedPosition").value,
+                skills: document.getElementById("skills").value,
+                projectExperience: document.getElementById("projectExperience").value,
+                selfEvalution: document.getElementById("selfEvalution").value
+            })
+        }).then(res=>res.json()).then(r=>{
+            alert(r.msg || "修改成功！");
+            location.href="/user/page/resume/my";
+        }).catch(err=>{
+            console.error(err);
+            alert("修改失败！");
+        });
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>管理员列表</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            padding: 30px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        a {
+            text-decoration: none;
+            color: #1677ff;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        table {
+            width: 90%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            padding: 14px 20px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background-color: #1677ff;
+            color: white;
+            font-weight: normal;
+        }
+
+        tr:hover {
+            background-color: #f9f9f9;
+        }
+
+        .back {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 8px 16px;
+            background: #1677ff;
+            color: white !important;
+            border-radius: 4px;
+            text-decoration: none !important;
+            transition: background 0.3s;
+        }
+
+        .back:hover {
+            background: #4096ff;
+        }
+
+        /* 美化删除按钮 */
+        .del-btn {
+            padding: 6px 12px;
+            background-color: #ff4d4f;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        .del-btn:hover {
+            background-color: #ff7875;
+            transform: scale(1.05);
+        }
+
+    </style>
+</head>
+
+<body>
+<h1>管理员列表</h1>
+<a href="/admin/page/index" class="back">← 返回首页</a>
+<hr>
+
+<table border="0">
+    <tr>
+        <th>ID</th>
+        <th>账号</th>
+        <th>姓名</th>
+        <th>性别</th>
+        <th>操作</th>
+    </tr>
+</table>
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+    // 页面加载时获取列表
+    window.onload = loadAdminList;
+
+    // 加载管理员列表
+    function loadAdminList() {
+        axios.get("/admin/list")
+        .then(res => {
+            if (res.data.code === 200) {
+                let admins = res.data.data;
+                let table = document.querySelector("table");
+                // 清空原有数据（除了表头）
+                table.innerHTML = `
+                    <tr>
+                        <th>ID</th>
+                        <th>账号</th>
+                        <th>姓名</th>
+                        <th>性别</th>
+                        <th>操作</th>
+                    </tr>
+                `;
+
+                admins.forEach(admin => {
+                    let tr = document.createElement("tr");
+                    tr.innerHTML = `
+                        <td>${admin.id}</td>
+                        <td>${admin.account}</td>
+                        <td>${admin.adminName}</td>
+                        <td>${admin.gender}</td>
+                        <td>
+                            <button class="del-btn" onclick="deleteAdmin(${admin.id})">删除</button>
+                        </td>
+                    `;
+                    table.appendChild(tr);
+                });
+            }
+        })
+    }
+
+    // AJAX 删除（不跳转页面！）
+    function deleteAdmin(id) {
+        if (!confirm("⚠️ 确认删除该管理员吗？删除后无法恢复！")) return;
+
+        // 用 axios 异步删除，不跳转！
+        axios.get("/admin/delete?id=" + id)
+        .then(res => {
+            if (res.data.code === 200) {
+                alert("✅ 删除成功！");
+                loadAdminList(); // 重新加载列表
+            } else {
+                alert("❌ 删除失败：" + res.data.msg);
+            }
+        })
+        .catch(err => {
+            alert("❌ 网络异常，删除失败");
+        });
+    }
+</script>
+</body>
+</html>

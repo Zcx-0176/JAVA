@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zcx.talentrecruitmentsystem.mapper.EnterpriseUserInfoMapper">
+    <insert id="insertEnterprise" parameterType="EnterpriseUserInfo">
+        insert into enterprise_user_info(
+                account,enterprise_name,address,introduction,
+                main_business,work_time,password,is_vip)
+        values(#{account},#{enterpriseName},#{address},
+                #{introduction},#{mainBusiness},#{workTime},
+                #{password},0)
+    </insert>
+
+    <delete id="deleteEnterprise" parameterType="long">
+        delete from enterprise_user_info where id=#{id}
+    </delete>
+
+    <update id="updateEnterprise" parameterType="EnterpriseUserInfo">
+        update enterprise_user_info
+        set
+            account=#{account},
+            enterprise_name=#{enterpriseName},
+            address=#{address},
+            introduction=#{introduction},
+            main_business=#{mainBusiness},
+            work_time=#{workTime},
+            password=#{password}
+        where id=#{id}
+    </update>
+
+    <select id="selectEnterpriseById" parameterType="long" resultType="EnterpriseUserInfo">
+        select * from enterprise_user_info where id=#{id}
+    </select>
+
+    <select id="selectAllEnterprise" resultType="EnterpriseUserInfo">
+        select * from enterprise_user_info
+    </select>
+
+    <select id="selectByAccount" resultType="EnterpriseUserInfo">
+        select * from enterprise_user_info where account=#{account}
+    </select>
+</mapper>

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>修改企业信息</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .back {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 8px 16px;
+            background: #1677ff;
+            color: white !important;
+            border-radius: 4px;
+            text-decoration: none !important;
+            transition: background 0.3s;
+        }
+        .back:hover {
+            background: #4096ff;
+        }
+    </style>
+</head>
+<body class="bg-light">
+<div class="container mt-5">
+    <a href="/enterprise/page/index" class="back">← 返回企业首页</a>
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-secondary text-white text-center">
+                    <h3>修改企业信息</h3>
+                </div>
+                <div class="card-body">
+                    <form id="updateForm">
+                        <input type="hidden" name="id" id="id">
+                        <input type="hidden" name="password" id="password">
+                        <input type="hidden" name="isVip" id="isVip">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">企业账号</label>
+                                <input type="text" class="form-control" name="account" id="account" readonly>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">企业名称</label>
+                                <input type="text" class="form-control" name="enterpriseName" id="enterpriseName" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">企业地址</label>
+                            <input type="text" class="form-control" name="address" id="address">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">企业介绍</label>
+                            <textarea class="form-control" name="introduction" id="introduction" rows="3"></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">主营业务</label>
+                                <input type="text" class="form-control" name="mainBusiness" id="mainBusiness">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">工作时间</label>
+                                <input type="text" class="form-control" name="workTime" id="workTime">
+                            </div>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-secondary">保存修改</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    const enterpriseId = 1;
+    fetch(`/enterprise/getById?id=${enterpriseId}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.code === 200) {
+                const e = data.data;
+                document.getElementById("id").value = e.id;
+                document.getElementById("account").value = e.account;
+                document.getElementById("enterpriseName").value = e.enterpriseName;
+                document.getElementById("address").value = e.address || "";
+                document.getElementById("introduction").value = e.introduction || "";
+                document.getElementById("mainBusiness").value = e.mainBusiness || "";
+                document.getElementById("workTime").value = e.workTime || "";
+                document.getElementById("password").value = e.password;
+                document.getElementById("isVip").value = e.isVip;
+            } else {
+                alert("加载企业信息失败：" + data.msg);
+            }
+        });
+    document.getElementById("updateForm").addEventListener("submit", e => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData.entries());
+        data.id = Number(data.id);
+        data.isVip = Number(data.isVip);
+        fetch("/enterprise/update", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        })
+        .then(res => res.json())
+        .then(r => {
+            alert(r.msg);
+            if (r.code === 200) {
+                location.href = "/enterprise/page/index";
+            }
+        });
+    });
+</script>
+</body>
+</html>

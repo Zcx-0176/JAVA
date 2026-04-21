@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zcx.talentrecruitmentsystem.mapper.MessageBoardMapper">
+    <insert id="insertMessage" parameterType="MessageBoard">
+        insert into message_board(username,user_type,content,create_time,reply)
+        values(#{username}, #{userType}, #{content}, now(), #{reply})
+    </insert>
+
+    <select id="selectMessagesByUsername" resultType="MessageBoard">
+        select * from message_board where username=#{username}
+        order by create_time desc
+    </select>
+
+    <update id="replyMessage">
+        update message_board
+        set reply = #{reply}
+        where id = #{id}
+    </update>
+
+    <delete id="deleteMessageById">
+        delete from message_board where id = #{id}
+    </delete>
+</mapper>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>修改管理员</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;font-family:"Microsoft YaHei",sans-serif}
+        body{background:#f5f7fa;padding:40px;display:flex;justify-content:center}
+        .box{background:white;padding:30px;width:500px;border-radius:12px;box-shadow:0 2px 15px rgba(0,0,0,0.08)}
+        h1{font-size:22px;margin-bottom:20px;color:#333}
+        .back{display:inline-block;margin-bottom:15px;color:#1677ff;text-decoration:none}
+        .form-item{margin-bottom:16px}
+        label{display:block;margin-bottom:6px;color:#555}
+        input{width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:6px;font-size:14px}
+        button{width:100%;padding:10px;background:#1677ff;color:white;border:none;border-radius:6px;font-size:16px;cursor:pointer}
+        button:hover{background:#4096ff}
+    </style>
+</head>
+<body>
+<div class="box">
+    <a href="/admin/page/list" class="back">← 返回列表</a>
+    <h1>修改管理员</h1>
+
+    <form id="updateForm">
+        <input type="hidden" id="id">
+        <div class="form-item">
+            <label>账号</label>
+            <input type="text" id="account" readonly>
+        </div>
+        <div class="form-item">
+            <label>密码</label>
+            <input type="text" id="password">
+        </div>
+        <div class="form-item">
+            <label>姓名</label>
+            <input type="text" id="adminName">
+        </div>
+        <div class="form-item">
+            <label>性别</label>
+            <input type="text" id="gender">
+        </div>
+        <button type="submit">保存修改</button>
+    </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+    let params = new URLSearchParams(location.search)
+    let id = params.get("id")
+
+    axios.get("/admin/getById", {params: {id}}).then(res => {
+        if(res.data.code === 200){
+            let a = res.data.data
+            document.querySelector("#id").value = a.id
+            document.querySelector("#account").value = a.account
+            document.querySelector("#password").value = a.password
+            document.querySelector("#adminName").value = a.adminName
+            document.querySelector("#gender").value = a.gender
+        }
+    })
+
+    document.querySelector("#updateForm").addEventListener("submit", e => {
+        e.preventDefault()
+        axios.post("/admin/update", {
+            id: document.querySelector("#id").value,
+            password: document.querySelector("#password").value,
+            adminName: document.querySelector("#adminName").value,
+            gender: document.querySelector("#gender").value
+        }).then(res => {
+            alert(res.data.msg)
+            if(res.data.code === 200) location.href = "/admin/page/list"
+        })
+    })
+</script>
+</body>
+</html>

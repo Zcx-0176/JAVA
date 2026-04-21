@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zcx.talentrecruitmentsystem.mapper.JobPostMapper">
+    <insert id="insertJobPost" parameterType="JobPost">
+        insert into job_post(job_name,enterprise_id,target_education,
+                skills,salary,work_type,work_location,job_status)
+        values(#{jobName},#{enterpriseId},#{targetEducation},#{skills},
+                #{salary},#{workType},#{workLocation},#{jobStatus})
+    </insert>
+
+    <delete id="deleteJobPost" parameterType="long">
+        delete from job_post where id=#{id}
+    </delete>
+
+    <update id="updateJobPost" parameterType="JobPost">
+        update job_post
+        set job_name=#{jobName},
+            enterprise_id=#{enterpriseId},
+            target_education=#{targetEducation},
+            skills=#{skills},
+            salary=#{salary},
+            work_type=#{workType},
+            work_location=#{workLocation},
+            job_status=#{jobStatus}
+        where id=#{id}
+    </update>
+
+    <select id="selectJobPostById" parameterType="long" resultType="JobPost">
+        select * from job_post where id=#{id}
+    </select>
+
+    <select id="selectJobPostsByEnterpriseId" parameterType="long" resultType="JobPost">
+        select * from job_post where enterprise_id=#{enterpriseId}
+    </select>
+
+    <select id="selectJobBySkills" resultType="JobPost">
+        select * from job_post
+        where skills like concat('%',#{skills},'%')
+    </select>
+
+    <select id="selectAllJobPosts" resultType="JobPost">
+        select * from job_post
+    </select>
+</mapper>

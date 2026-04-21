@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>添加管理员</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;font-family:"Microsoft YaHei",sans-serif}
+        body{background:#f5f7fa;padding:40px;display:flex;justify-content:center}
+        .box{background:white;padding:30px;width:500px;border-radius:12px;box-shadow:0 2px 15px rgba(0,0,0,0.08)}
+        h1{font-size:22px;margin-bottom:20px;color:#333}
+        .back{display:inline-block;margin-bottom:15px;color:#1677ff;text-decoration:none}
+        .form-item{margin-bottom:16px}
+        label{display:block;margin-bottom:6px;color:#555}
+        input{width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:6px;font-size:14px}
+        button{width:100%;padding:10px;background:#1677ff;color:white;border:none;border-radius:6px;font-size:16px;cursor:pointer}
+        button:hover{background:#4096ff}
+    </style>
+</head>
+<body>
+<div class="box">
+    <a href="/admin/page/index" class="back">← 返回首页</a>
+    <h1>添加管理员</h1>
+
+    <form id="addForm">
+        <div class="form-item">
+            <label>账号</label>
+            <input type="text" name="account" id="account">
+        </div>
+        <div class="form-item">
+            <label>密码</label>
+            <input type="text" name="password" id="password">
+        </div>
+        <div class="form-item">
+            <label>姓名</label>
+            <input type="text" name="adminName" id="adminName">
+        </div>
+        <div class="form-item">
+            <label>性别</label>
+            <input type="text" name="gender" id="gender">
+        </div>
+        <button type="submit">确认添加</button>
+    </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+    document.querySelector("#addForm").addEventListener("submit", e => {
+        e.preventDefault()
+        axios.post("/admin/add", {
+            account: document.querySelector("#account").value,
+            password: document.querySelector("#password").value,
+            adminName: document.querySelector("#adminName").value,
+            gender: document.querySelector("#gender").value
+        }).then(res => {
+            alert(res.data.msg)
+            if(res.data.code === 200) location.href = "/admin/page/list"
+        })
+    })
+</script>
+</body>
+</html>

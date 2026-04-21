@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>新增岗位</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .back {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 8px 16px;
+            background: #1677ff;
+            color: white !important;
+            border-radius: 4px;
+            text-decoration: none !important;
+            transition: background 0.3s;
+        }
+        .back:hover {
+            background: #4096ff;
+        }
+    </style>
+</head>
+<body class="bg-light">
+<div class="container mt-5">
+    <a href="/enterprise/page/index" class="back">← 返回企业首页</a>
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white text-center">
+                    <h3>新增岗位</h3>
+                </div>
+                <div class="card-body">
+                    <form id="addJobForm">
+                        <div class="mb-3">
+                            <label class="form-label">岗位名称</label>
+                            <input type="text" class="form-control" name="jobName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">学历要求</label>
+                            <input type="text" class="form-control" name="targetEducation">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">技能要求</label>
+                            <textarea class="form-control" name="skills"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">薪资</label>
+                            <input type="text" class="form-control" name="salary" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">工作类型</label>
+                            <input type="text" class="form-control" name="workType" placeholder="全职/兼职/实习">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">工作地点</label>
+                            <input type="text" class="form-control" name="workLocation">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">岗位状态</label>
+                            <select class="form-select" name="jobStatus">
+                                <option value="1">招聘中</option>
+                                <option value="0">已关闭</option>
+                            </select>
+                        </div>
+                        <input type="hidden" name="enterpriseId" value="1">
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">提交</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    document.getElementById("addJobForm").addEventListener("submit", e => {
+        e.preventDefault();
+        const data = Object.fromEntries(new FormData(e.target));
+        data.enterpriseId = Number(data.enterpriseId);
+        data.jobStatus = Number(data.jobStatus);
+        fetch("/job/add", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        }).then(res => res.json()).then(r => {
+            alert(r.msg);
+            if (r.code === 200) location.href = "/enterprise/page/job/list";
+        });
+    });
+</script>
+</body>
+</html>

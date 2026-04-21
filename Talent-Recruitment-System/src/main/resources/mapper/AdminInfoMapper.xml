@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zcx.talentrecruitmentsystem.mapper.AdminInfoMapper">
+    <insert id="insertAdmin" parameterType="AdminInfo">
+        insert into admin_info(account,admin_name,gender,age,email,password)
+        values(#{account},#{adminName},#{gender},#{age},#{email},#{password})
+    </insert>
+    <delete id="deleteAdminById" parameterType="long">
+        delete from admin_info where id=#{id}
+    </delete>
+    <update id="updateAdmin" parameterType="AdminInfo">
+        update admin_info
+        set account=#{account},admin_name=#{adminName},gender=#{gender},age=#{age},email=#{email},password=#{password}
+        where id=#{id}
+    </update>
+    <select id="selectAdminById" parameterType="long" resultType="AdminInfo">
+        select id,account,admin_name,gender,age,email,password from admin_info where id=#{id}
+    </select>
+    <select id="selectAllAdmins" resultType="AdminInfo">
+        select id,account,admin_name,gender,age,email,password from admin_info
+    </select>
+
+    <select id="selectAllApplies" resultType="MemberApply">
+        select * from member_apply order by apply_time desc
+    </select>
+
+    <update id="updateApplyStatus">
+        update member_apply
+        set status=#{status}
+        where id=#{id}
+    </update>
+
+    <update id="updateEnterpriseVipStatus">
+        update enterprise_user_info
+        set is_vip=#{isVip}
+        where account=#{account}
+    </update>
+    <update id="updateUserVipStatus">
+        update user_info
+        set is_vip=#{isVip}
+        where account=#{account}
+    </update>
+
+    <select id="selectByAccount" resultType="AdminInfo">
+        select * from admin_info where account=#{account}
+    </select>
+</mapper>
