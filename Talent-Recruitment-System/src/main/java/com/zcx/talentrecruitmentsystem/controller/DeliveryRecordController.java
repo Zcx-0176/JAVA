@@ -8,10 +8,7 @@ import com.zcx.talentrecruitmentsystem.service.DeliveryRecordService;
 import com.zcx.talentrecruitmentsystem.vo.DeliveryRecordVO;
 import com.zcx.talentrecruitmentsystem.vo.JobPostWithDeliveryVO;
 import jakarta.annotation.Resource;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -44,7 +41,11 @@ public class DeliveryRecordController {
 
     //企业修改投递状态   0=待查看，1=已查看，2=已录用，3=已拒绝
     @PostMapping("/audit")
-    public Result udtDeliveryStatus(Long id,Integer status,String userType){
+    public Result udtDeliveryStatus(
+            @RequestParam Long id,
+            @RequestParam Integer status,
+            @RequestParam String userType
+    ){
         int rows = deliveryRecordService.udtDeliveryStatus(id,status,userType);
         return rows>0 ? Result.success("修改投递状态成功") : Result.error("修改投递状态失败");
     }

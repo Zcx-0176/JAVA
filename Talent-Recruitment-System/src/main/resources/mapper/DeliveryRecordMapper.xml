@@ -3,7 +3,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.zcx.talentrecruitmentsystem.mapper.DeliveryRecordMapper">
     <select id="selectJobPostByUserId" parameterType="long" resultType="JobPostWithDeliveryVO">
-        select  j.*,dr.delivery_time as deliveryTime,dr.status as deliveryStatus
+        select  j.*, dr.delivery_time as deliveryTime,dr.status as deliveryStatus
         from delivery_record dr
         inner join job_post j
         on dr.job_id = j.id
@@ -20,11 +20,11 @@
         order by dr.delivery_time desc
     </select>
     
-    <select id="updateDeliveryStatus">
+    <update id="updateDeliveryStatus">
         update delivery_record
         set status = #{status}
         where id=#{id}
-    </select>
+    </update>
 
     <insert id="insertDelivery">
         insert into delivery_record(user_id, job_id, delivery_time, status)

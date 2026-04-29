@@ -44,7 +44,7 @@
                         listDiv.innerHTML += `
                         <div class="card p-3 mb-3">
                             <h5>${item.jobName}</h5>
-                            <p class="mb-1">状态：<span class="badge bg-info">${statusMap[item.status]}</span></p>
+                            <p class="mb-1">状态：<span class="badge bg-info">${statusMap[Number(item.deliveryStatus)]}</span></p>
                             <p class="text-success fw-bold">薪资：${item.salary}</p>
                         </div>`;
                     });

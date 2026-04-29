@@ -23,5 +23,5 @@ public class JobPostWithDeliveryVO {
     private Integer jobStatus;
 
     private LocalDateTime deliveryTime;
-    private Integer status;
+    private Integer deliveryStatus;
 }
