@@ -555,3 +555,348 @@ Throwable
 
 #### 十二、static /final/finally /finalize
 1. **static（静态关键字）**
+- **修饰：变量、方法、代码块、内部类**
+- **一句话：static 属于类，不属于对象，与实例无关。**
+- **静态变量**
+  - 全局共享一份，所有对象共用同一个
+  - 存储在 方法区 / 元空间
+  - 类加载时初始化，生命周期与类一致
+  - 使用：类名.变量名，不推荐对象调用
+- **静态方法**
+  - 可以直接通过 类名.方法() 调用
+  - 方法内部不能使用 this、super
+  - 不能直接访问非静态成员（变量 / 方法）
+  - 常见工具类：Arrays、Collections、Math
+- **静态代码块**
+  - 类加载阶段执行，优先于构造方法
+  - 常用于初始化配置、加载驱动
+```
+static {
+    // 类加载时执行，只执行一次
+}
+```
+
+- **静态内部类**
+  - 不依赖外部类实例，可以直接 new
+  - 只有静态内部类能定义静态成员
+   
+2. **final（最终关键字）**
+- **可修饰：类、方法、变量**
+- **final 修饰类**
+  - 类不能被继承
+  - 如各种包装类和工具类：String、Integer、Math
+  - 目的：防止被继承修改，保证不可变 / 安全
+- **final 修饰方法**
+  - 方法不能被子类重写
+  - 但可以被继承、可以被重载
+  - 目的：保护核心逻辑不被破坏
+- **final 修饰变量**
+  - **变量只能赋值一次，赋值后不能改**
+  - 基本类型：值不可变
+  - 引用类型：引用不可变，对象内容可变
+  ```
+  final List<String> list = new ArrayList<>();
+  list.add("a"); // 允许，改的是对象内容
+  list = new ArrayList<>(); // 报错，改了引用地址
+
+  list 是引用，list.add("a") 中a是对象内容。
+  ```
+
+3. **finally（异常最终块）**
+- **核心：跟在 try/catch 后，无论是否异常、是否 return，一定执行。用于资源关闭：IO 流、连接、文件等**
+
+4. **finalize（现在已经废弃了的方法）**
+- 来源：Object 类里的方法：
+```
+protected void finalize() throws Throwable
+```
+- 作用：对象被垃圾回收前，JVM 会调用一次，用于做资源释放、清理操作
+- **为什么废弃、为什么不推荐**
+  - 调用时机不确定，GC 什么时候跑不可控
+  - 可能导致对象复活（重新被引用）
+  - 性能极差，严重影响 GC
+  - Java 9 已标记为 Deprecated 废弃
+
+#### 十三、Collection 体系、ArrayList、LinkedList、HashMap
+1. **集合整体框架**
+```
+Collection
+├─ List  有序、可重复
+│  ├─ ArrayList   数组
+│  └─  LinkedList  双向链表
+│
+├─ Set   无序、不可重复
+│  ├─ HashSet     基于 HashMap
+│  ├─ TreeSet     红黑树
+│  └─ LinkedHashSet  哈希+链表
+│
+└─ Queue 队列
+
+Map  键值对，key 唯一
+├─ HashMap        数组+链表+红黑树
+├─ TreeMap        红黑树
+└─ ConcurrentHashMap  线程安全分段锁
+```
+- List：有序可重复，用在需要按索引存取
+- Set：无序不可重复，用在去重
+- Map：键值对映射，用在key 查找 value
+2. **ArrayList**
+- 底层数据结构：动态扩容的 Object 数组
+```
+transient Object[] elementData;
+
+初始化
+JDK7：初始容量 10
+JDK8：懒加载
+刚 new 时是个空数组 {}
+第一次 add 才扩容为 10
+```
+- 扩容机制：新容量 = 旧容量 1.5 倍\
+```
+oldCapacity + (oldCapacity >> 1)
+
+扩容底层调用 Arrays.copyOf
+→ 新建数组 + 复制原数据
+```
+- 查询快：数组支持随机访问，O (1)
+- 增删慢：需要移动元素，O (n)
+- 线程不安全
+- 允许 null
+- 适用场景:大量查询、遍历，少量增删
+3. **LinkedList**
+- 底层数据结构：双向链表
+```
+每个节点是 Node：
+private static class Node<E> {
+    E item;
+    Node<E> prev; // 前驱
+    Node<E> next; // 后继
+}
+```
+- 增删快：只改指针，不用移动数据
+- 查询慢：需要遍历链表，O (n)
+- 线程不安全
+- 允许 null
+- 适用场景：频繁头尾插入 / 删除，如队列、栈
+
+4. **HashMap**
+- 底层数据结构：数组 + 链表 + 红黑树
+- 默认容量：16   
+- 默认负载因子：0.75
+- 扩容阈值：容量 × 负载因子
+- 树化条件: 链表长度 >= 8,数组长度 ≥ 64
+- 退化为链表：树节点 ≤ 6
+- 为什么是 16、0.75？
+  - 16 是 2 的幂，方便 hash & (n-1) 高效取模
+  - 0.75 是时间与空间平衡的官方经验值
+-  put 流程:
+   - 数组为空则初始化
+   - 计算 key 的 hash 值
+   - 通过 hash & (len-1) 得到下标
+   - 位置为空 → 直接插入
+   - 不为空
+      - 是树节点 → 树插入
+      - 是链表节点 → 遍历插入
+      - 链表长度 ≥8 且数组≥64 → 树化
+   - 插入后 size 超过阈值 → 2 倍扩容
+- 哈希冲突解决:
+  - 链地址法：数组同一位置挂链表
+  - JDK1.8 加红黑树优化长链表性能
+- 为什么重写 equals 必须重写 hashCode？\
+  - 首先 hashCode是根据对象的内存地址计算出来的一串数字，不同对象大概率不一样，但理论上可能重复（哈希冲突）
+  - HashMap 先比较 hashCode，再比较 equals
+  - 只重写 equals 会导致：equals 为 true 但 hashCode 不同→ 被当成两个 key，存不进同一个位置
+- 线程安全：
+  - 多线程 put 可能导致数据覆盖
+  - 并发场景用 ConcurrentHashMap,这个是线程安全的，在链表头结点和树的根节点加锁实现线程安全
+
+5. **HashSet**
+- 底层就是 HashMap
+- 元素存在 key 位置
+- value 存一个固定的 Object 常量
+- 去重靠：hashCode + equals
+```
+private static final Object PRESENT = new Object();
+
+public boolean add(E e) {
+    return map.put(e, PRESENT) == null;
+}
+```
+
+#### 十四、抽象类 VS 接口
+1. **本质区别**：
+   - 抽象类：对事物抽象（是什么）
+   - 接口：对行为抽象（能做什么）
+2. **核心语法对比**
+- |对比项|抽象类|接口|
+  |:-----:|:----:|:--:|
+  |继承方式|extends（单继承）|implements（多实现）|
+  |成员变量|任意修饰符（public、private、protected、static、final 都行）|只能是 public static final 常量（默认省略）|
+  |构造方法|允许有|不允许有|
+  |普通方法|允许有|允许有|
+  |抽象方法|允许有|允许有|
+  |静态方法|允许有|允许有|
+  |默认方法|允许有|允许有|
+  |私有方法|允许有|允许有|
+  |设计意义|模板设计，包含共性属性和行为|能力扩展、契约定义|
+3. **接口在JDK7、8、9的变化**
+- JDK7 及以前
+```
+接口里只能有：
+常量：public static final
+抽象方法：public abstract
+public interface A {
+    // 等价 public static final int a = 10;
+    int a = 10;
+
+    // 等价 public abstract void test();
+    void test();
+}
+
+特点：
+完全是规范 / 契约
+没有任何实现代码
+实现类必须重写所有抽象方法
+```
+- JDK8
+```
+允许两种方法：
+静态方法（static）
+默认方法（default）
+
+
+静态方法（static）
+public interface A {
+    static void staticMethod() {
+        System.out.println("静态方法");
+    }
+}
+属于接口自己
+只能用 接口名.方法() 调用
+实现类不能继承、不能重写
+
+
+
+默认方法（default）
+public interface A {
+    default void defaultMethod() {
+        System.out.println("默认方法");
+    }
+}
+属于实现类对象
+实现类可以直接用，也可以重写
+解决：接口新增方法时，不用改动所有实现类
+```
+- JDK9
+```
+允许：
+私有普通方法
+私有静态方法
+
+作用：
+抽取默认方法、静态方法中的重复代码
+对外完全隐藏，实现类也看不见
+public interface A {
+    private void test1() {}
+    private static void test2() {}
+}
+```
+- **默认方法（default）详解**
+- 为什么要加默认方法:**接口升级兼容老代码**
+  - 以前接口加一个方法，所有实现类必须全部重写，否则报错
+  - 有了 default：实现类不用动,想用就用，想重写就重写
+- 默认方法的冲突问题
+  - 情况 1：一个类实现两个接口，有同名默认方法
+  ```
+  interface A { default void m(){} }
+  interface B { default void m(){} }
+
+  class C implements A,B {
+     // 必须重写 m()，否则编译报错
+  }
+  ```
+  - 情况 2：接口与父类有同名方法
+  - **类优先于接口**
+  - 父类有，接口也有 → 走父类方法
+  - 不会冲突，编译正常
+- **静态方法（static）详解**
+- 接口静态方法只属于当前接口
+- 实现类不能继承，也不能通过对象调用
+- 只能：接口名.静态方法()
+- 常用于：工具方法、内部辅助方法
+
+- **抽象类和接口到底怎么选**
+- 选抽象类的场景:
+  - 需要定义属性、状态
+  - 需要构造方法
+  - 需要单继承模板
+  - 子类有很多共性代码可复用
+- 选接口的场景
+  - 只定义行为、能力、规范
+  - 需要多实现
+  - 对外部提供扩展能力
+  - 不想约束继承关系
+- **一句话：优先用接口，抽象类用于抽取共性模板。**
+
+#### 十五、多线程
+1. **实现线程的三种方式**
+   - **继承 Thread 类**
+   ```
+    class MyThread extends Thread {
+        public void run() { ... }
+    }
+    new MyThread().start();
+
+    缺点：java单继承，无法再继承其他类
+   ```
+   - **实现 Runnable 接口**
+   ```
+    class MyRunnable implements Runnable {
+        public void run() { ... }
+    }
+    new Thread(new MyRunnable()).start();
+
+    优点：避免单继承限制，便于共享资源。
+   ```
+   - **实现 Callable 接口**
+   ```
+    class MyCallable implements Callable<T> {
+        public T call() throws Exception { ... }
+    }
+    FutureTask<T> task = new FutureTask<>(new MyCallable());
+    new Thread(task).start();
+    T result = task.get(); // 阻塞获取返回值
+
+    可以有返回值、可以抛异常
+   ```
+2. **start () 和 run () 的区别**
+   - run():
+   - 只是普通方法调用,在当前线程同步执行,不会开启新线程
+   - start():
+   - 底层调用 native 方法 start0(),向 JVM 申请创建新线程,线程就绪后，由 JVM 自动调用 run(),一个线程只能 start 一次，多次会抛 IllegalThreadStateException
+- **run () 是普通方法，不开启线程；start () 开启线程，由 JVM 调用 run ()。**
+
+3. **线程六大状态**
+```
+NEW → RUNNABLE → BLOCKED → WAITING → TIMED_WAITING → TERMINATED
+```
+- **NEW**：新建状态，线程对象已经创建，但还没有调用 start() 方法，线程处于新建状态。
+- **RUNNABLE**：就绪状态，线程已经启动，但还没有运行,等待CPU 调度，线程处于就绪状态。
+- **BLOCKED**：阻塞状态，线程在等待获取synchronized锁，获取锁失败，线程处于阻塞状态。
+- **WAITING**：等待状态，线程在等待 notify() 或者 notifyAll() 方法唤醒，线程处于等待状态。
+  - 如：Object.wait()、Thread.join()、LockSupport.park() 等方法
+- **TIMED_WAITING**：超时等待状态，线程在等待指定时间后被唤醒，线程处于超时等待状态。
+  - 如：sleep(long)、wait(long)、join(long)等方法
+- **TERMINATED**：结束状态，线程已经执行完毕，线程处于结束状态。
+
+4. **sleep()和wait()的区别**
+- |对比项|sleep()|wait()|
+  |:----:|:----:|:----:|
+  |来自类|Thread|Object|
+  |锁释放|不释放|释放|
+  |使用环境|任何地方|必须在 synchronized 内|
+  |唤醒方式|时间到自动醒|需notify/notifyAll|
+  |是否抛异常|是|是|
+- **sleep 抱着锁睡觉，wait 放锁等待。**
+  
+5. **synchronized 底层**

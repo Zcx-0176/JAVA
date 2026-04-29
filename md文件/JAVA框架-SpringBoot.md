@@ -1747,3 +1747,914 @@ public class UserService {
   - **xml中的insert,批量添加，update都需要加上部门ID这个属性**
   
 
+## 十一、Redis
+- 核心作用：做缓存
+- 数据库MySQL存永久数据（慢），而Redis存储热点数据（块，减轻数据库压力）
+
+1. **安装Redis**
+- 打开浏览器访问：https://github.com/tporadowski/redis/releases
+- 下载最新版redis-x.x.x.zip
+- 解压到"E:\Redis\Redis-x64-5.0.14.1"
+```
+使用管理员方式打开cmd
+
+先进入正确的目录
+cd /d E:\Redis\Redis-x64-5.0.14.1
+
+临时启动 Redis（先验证能不能用）
+redis-server.exe redis.windows.conf
+看到 Redis is now ready to accept connections on port 6379 就成功了
+
+再开一个新 CMD，测试连接
+cd /d E:\Redis\Redis-x64-5.0.14.1
+redis-cli.exe
+ping
+返回 PONG 说明 Redis 正常运行。
+
+```
+- 安装成系统服务(开机自启动)
+```
+在管理员身份的 CMD 里执行：
+cd /d E:\Redis\Redis-x64-5.0.14.1
+redis-server.exe --service-install redis.windows.conf
+redis-server.exe --service-start
+这样以后就不用每次手动启动了。
+```
+
+- 配置环境变量：把 E:\Redis\Redis-x64-5.0.14.1 这个路径，添加到系统环境变量的 Path 里，配置完重启 CMD，以后在任何路径都能直接用 redis-server 和 redis-cli 命令了
+```
+打开cmd，输入 sysdm.cpl，回车
+弹出窗口后，切换到高级选项卡
+弹出窗口后，切换到高级选项卡
+
+在下方的系统变量列表里，找到名为 Path 的变量，双击它
+点击右上角的 新建
+把你的 Redis 路径粘贴进去：
+E:\Redis\Redis-x64-5.0.14.1
+一路点击 确定 保存
+``` 
+
+2. **认识Redis**
+- Redis：全称Remote Dictionary Server，是一个
+  - **高性能内存数据库**：数据存在内存里，读写速度极快
+  - **键值对存储**：就像一个大字典，用Key找Value
+  - **非关系型数据库(NoSQL)**:和MySQL这种关系型数据库不一样，不存表，不用SQL
+- **核心作用**
+  - **==缓存==**：把 MySQL 里的热点数据放到 Redis，减轻数据库压力，提升接口响应速度
+  - **分布式锁、限流、计数器、消息队列**
+  
+3. **Redis 核心：5 种数据类型**
+- **字符串 String**
+- 特点：存储单个键值对，支持数字、字符串、二进制数据
+- 适用场景：缓存用户信息、计数器、分布式Session
+- **必学命令**
+```
+set key value       存值
+get key             取值
+del key             删除
+incr key         自增，数字自增，比如点赞数
+expire key seconds   设置过期时间，比如缓存1小时，seconds为秒数，到了时间就会自动删除
+ttl key           查看剩余过期时间
+persist key           取消过期时间
+append key str       追加字符串
+```
+- **哈希 Hash ——存对象专用**
+- 特点：类似Map，适合存对象，节省空间
+- 适用场景：缓存用户信息（id、name、age）、商品详情
+- **必学命令**
+```
+hset key field value  存单个字段
+hget key field   取单个字段
+hgetall key  取所有字段和值
+hdel key field   删除字段
+hlen key    获取对象有多少个字段
+hexists key   判断字段是否存在
+```
+- **列表 List ——有序队列**
+- 特点：双向链表，按插入顺序排序，支持左右操作
+- 适用场景：消息队列、点赞列表
+- 评论列表
+- **必学命令**
+```
+lpush key value   左侧插入
+rpush key value   右侧插入
+lpop key   左侧弹出
+rpop key   右侧弹出
+lrange key 0 -1   查看所有元素，0是第一个，-1是最后一个
+llen key   获取列表长度
+```
+- **集合 Set ——无序、不重复**
+- 特点：元素不重复，无序，支持交集 / 并集 / 差集
+- 适用场景：好友列表、标签、去重、共同好友
+- **必学命令**
+```
+sadd key value   添加元素
+smembers key   查看所有元素
+sismember key value   判断元素是否存在
+sinter key1 key2   求交集(共同好友)
+scard key   获取集合元素个数
+```
+- **有序集合 ZSet —— 带分数的集合**
+- 特点：元素不重复，按分数排序
+- 适用场景：排行榜、延迟队列、带权重的列表
+- **必学命令**
+```
+zadd key score value   添加元素+分数
+zrange key 0 -1   按分数升序查看所有元素，0是第一个，-1是最后一个
+zrevrange key 0 -1   按分数降序查看所有元素，0是第一个，-1是最后一个(排行榜)
+zrem key value   删除元素
+zcard key  获取集合元素个数
+zscore key val   查看某个元素的分数
+```
+
+- 学到目前，上述命令只能在cmd使用
+```
+打开 CMD → 输入 redis-cli
+进到这个界面: 127.0.0.1:6379>
+上述命令在这里敲，在这里运行，在这里显示结果
+数据永久保存在我的电脑，关掉cmd，关机，数据还在
+```
+- Redis 本质是一个后台服务
+- cmd的redis-cli 只是一个客户端工具，用来手动操作、测试、联系命令
+```
+实操练习 
+一、String 字符串
+-- 1. 存 key-value
+set username zcx
+
+-- 2. 取值
+get username
+
+-- 3. 数字自增（点赞、浏览量）
+set blog_view 0
+incr blog_view
+get blog_view
+
+-- 4. 设置过期时间（100秒自动消失）
+set msg hello
+expire msg 100
+
+-- 5. 查看剩余过期时间
+ttl msg
+
+-- 6. 取消过期，永久保存
+persist msg
+
+-- 7. 删除key
+del username
+
+
+二、Hash 哈希（存对象，适合用户 / 商品）
+-- 1. 单个字段赋值
+hset user1 name 赵晨旭
+hset user1 age 20
+hset user1 sex 男
+
+-- 2. 单独取某一个字段
+hget user1 name
+hget user1 age
+
+-- 3. 一次性取出对象所有数据
+hgetall user1
+
+-- 4. 获取当前对象有几个字段
+hlen user1
+
+-- 5. 判断某个字段是否存在
+hexists user1 sex
+
+-- 6. 删除对象里某个字段
+hdel user1 sex
+
+
+三、List 列表（有序、队列、左右进出）
+-- 1. 右侧添加数据（顺序存入）
+rpush list1 a b c d
+
+-- 2. 左侧添加数据
+lpush list1 0
+
+-- 3. 查看列表所有元素  0=第一条  -1=最后一条
+lrange list1 0 -1 
+
+-- 4. 查看列表总长度
+llen list1
+
+-- 5. 左侧弹出（删除最左边第一个）
+lpop list1
+
+-- 6. 右侧弹出（删除最右边最后一个）
+rpop list1
+
+
+四、Set 集合（无序、自动去重、无重复）
+-- 1. 添加多个元素
+sadd tag 游戏 音乐 美食 游戏
+
+-- 2. 查看集合所有元素（自动去重，看不到重复的游戏）
+smembers tag
+
+-- 3. 判断某个元素是否在集合中
+sismember tag 音乐
+sismember tag 看书
+
+-- 4. 查看集合元素总数
+scard tag
+
+-- 5. 再建一个集合，用来测试交集
+sadd tag2 音乐 运动 美食
+
+-- 6. 取两个集合交集（共同元素 = 共同爱好）
+sinter tag tag2
+
+
+五、ZSet 有序集合（带分数、自动排序 = 排行榜）
+-- 1. 添加成员+分数（分数在前，内容在后）
+zadd score_rank 85 张三
+zadd score_rank 96 李四
+zadd score_rank 72 王五
+zadd score_rank 91 赵六
+
+-- 2. 按分数【升序】排列（低分在前）
+zrange score_rank 0 -1
+
+-- 3. 按分数【降序】排列（高分在前，排行榜）
+zrevrange score_rank 0 -1
+
+-- 4. 查看某个成员的分数
+zscore score_rank 李四
+
+-- 5. 查看有序集合总数量
+zcard score_rank
+
+-- 6. 删除指定成员
+zrem score_rank 王五
+
+
+-- 清空当前数据库所有数据（慎用，练习专用）
+flushdb
+```
+
+```
+核心区别
+String：单纯一个 key 绑定一个值，简单粗暴
+
+Hash：一个 key 里面包多个小字段，适合存对象
+
+List：有序、允许重复，像排队队列
+
+Set：无序、强制去重，适合爱好 / 标签
+
+ZSet：带分数自动排序，专门做排行榜
+```
+
+
+4. **Redis 整合 SpringBoot + MyBatis**
+- 核心逻辑：
+- 之前是redis-cli 手动敲命令 → 手动增删改查 Redis。
+- 现在是整合后：
+Java 代码代替你手动敲 Redis 命令
+- 查数据库之前，先查Redis缓存，缓存有数据，直接返回，不查MySQL，缓存没数据，查 MyBatis/MySQL，查到后存入 Redis，更新/删除数据时，同步删除Redis缓存，保证数据一致
+- **核心目的**：减轻 MySQL 压力、提升接口速度
+- 首先需要添加Redis依赖
+```
+<!-- Spring Data Redis 核心依赖 -->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-data-redis</artifactId>
+</dependency>
+        
+<!-- Lettuce 连接池依赖 -->
+<dependency>
+    <groupId>org.apache.commons</groupId>
+    <artifactId>commons-pool2</artifactId>
+</dependency>
+
+ 必须加 Lettuce 连接池
+      这就是 Redis 连接池
+      不加 commons-pool2：你的代码每次操作 Redis 都会：
+      新建一个连接，用完立刻关闭，下次用 → 再新建 → 再关闭
+      就会导致：特别慢（每次都要重新握手、建立连接），高并发直接崩溃（端口不够用、Redis 卡死）
+        
+      加了连接池，它提前建好一堆连接，放在池子里循环复用
+      流程变成：
+      项目启动 → 提前创建 5~10 个连接
+      你要用 → 直接从池子里拿
+      用完 → 放回池子，不关闭
+      别人用 → 继续拿，循环用
+      
+      这样速度极快（不用反复创建销毁）
+      并发稳定（控制最多同时多少人访问）
+      不会把 Redis 搞崩
+
+      
+        
+<!-- 配置处理器，消除 IDEA 配置提示 -->
+这个其实我实际加了也没用，主要是为了消除字体中间的红杠
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-configuration-processor</artifactId>
+    <optional>true</optional>
+</dependency>
+```
+- 然后再application.yaml中的spring下添加redis配置
+```
+  redis:
+    host: 127.0.0.1
+    port: 6379
+    password:
+    database: 0
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 2
+        max-wait: -1ms
+        
+  注意：一定在spring条目下加入Redis配置
+  即：redis配置跟datasource的配置的缩进是一样的
+  
+  因为SpringBoot 是通过自动配置类来读取配置的
+  Redis 的自动配置类是 RedisAutoConfiguration
+  它只会读取 spring.redis.* 开头的配置，不会读根层级的 redis.*
+  
+  所以一旦redis配置不在spring节点下，而是自己单开一列写在根节点
+  那么字体会全部标红，并且对于SpringBoot来说就是无效配置
+```
+- 创建 Redis 配置类（解决序列化乱码）
+- 这个类是Redis的翻译官和格式化工具
+- 如果没有redis配置类，那么Redis存的数据就会是乱码、看不懂、没法用
+- 作用：
+  - 把java对象 转成 JSON对象存进Redis
+  - 把Redis里的JSON对象 转成java对象
+  - 解决Redis存数据乱码的问题
+
+- 为什么Redis存数据会乱码
+- 不同于在cmd中使用Redis，cmd中敲的命令天然就是字符串，不会乱码
+- 但在java中默认存Redis用的是二进制序列化，而不是字符串
+- 他会把java对象变成二进制字节流存进redis，如果不写Redis配置类，那么就会输出乱码
+
+- Redis配置类在哪里创建？
+- 在common包下创建
+- 因为common包是公共工具包，这个配置类是全局通用配置，整个项目都要用，所以放在这里最合适
+
+- Redis配置类要加@Configuration注解
+- 因为这个注解是告诉Spring，我是一个配置类，启动时要优先加载我
+- 作用：
+  - 加了这个注解，Spring启动时自动运行这个类
+  - 不加：这个配置无效
+  - 加了：这个配置类才能正常工作
+
+- 在RedisConfig类中由于有对象RedisTemplate帮我们自动在java里写Redis的各种命令
+- 即java操作Redis的遥控器，不用自己敲cmd中的Redis命令，spring自带
+- 但是如上述所说，这个自带的对象RedisTemplate默认二进制序列化
+- 所以我们需要自己定义一个RedisTemplate，给它设置好不乱码的规则，把他交给Spring管理
+
+- 也就是说，其实spring里面RedisTemplate有各种功能，也有不乱码的方法
+- 但是默认不开启，所以我们需要手动创建这个RedisTemplate对象，然后调用不乱码的功能
+- 覆盖掉默认规则
+
+- 流程：创建RedisTemplate对象，在其上加Bean注解，交给spring管理
+- 然后将对象与Redis连接
+- 设置key和value的存储格式，分别用String和JSON格式存储
+- 然后用创建的RedisTemplate对象调用设置方法
+- 方法的参数就是刚才定义的存储格式
+- key和value各有两种方法要调用
+- 一种是单独的键和值
+- 一种是对象内的键和值
+- 这两种方法根据传入的定义格式调用后，就覆盖了默认的二进制序列规则
+- 然后调用afterPropertiesSet()方法，让设置生效
+- 很重要
+- 上述以前的设置都是半成品，RedisTemplate 内部有很多 “初始化逻辑”，比如：
+  - 检查连接是否配置好
+  - 检查序列化器是否配置好
+  - 把你设置的各种规则真正加载进去
+  - 把工具从 “半成品” 变成 “可用状态”
+- 这些逻辑不会自动执行，必须手动调用这个方法才会跑
+- 就相当于开机键，之前的步骤都是装外设，只有调用这个方法，才会初始化和激活所有配置，所有的配置才生效
+- 最后返回创建好的对象
+
+- 下面的代码就是标准写法，是通用的模版，不需要随着项目的不同改逻辑
+
+```
+package com.zcx.talentrecruitmentsystem.common;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.JacksonJsonRedisSerializer;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
+
+/*
+    Redis配置类
+ */
+@Configuration      告诉Spring，我是一个配置类，启动时要优先加载我
+public class RedisConfig {
+
+    
+    制造一个RedisTemplate对象，交给Spring管理
+    @Bean
+    public RedisTemplate<String,Object> redisTemplate(RedisConnectionFactory factory){
+        
+        
+        
+        //创建一个新的Redis遥控器，即Redis操作工具
+        RedisTemplate<String,Object> redisTemplate = new RedisTemplate<>();
+
+        //连接Redis服务，没有它，这个对象连接不到Redis
+        redisTemplate.setConnectionFactory(factory);
+
+
+        //设置key序列化和不乱码
+        //即使用String存储
+        //第一行的代码，是让普通的键值对的key不乱码，即name: zcx,age: 18，单独的key:如name和age
+        //第二行的代码，是让对象里的好多key不乱码，即user1: name: zcx, age:20，包含在user1这个对象的key：如user1.name user1.age
+        redisTemplate.setKeySerializer(RedisSerializer.string());
+        redisTemplate.setHashKeySerializer(RedisSerializer.string());
+
+        //设置value序列化和不乱码
+        //即使用JSON格式存储
+        redisTemplate.setValueSerializer(RedisSerializer.json());
+        redisTemplate.setHashValueSerializer(RedisSerializer.json());
+
+        //让设置生效
+        redisTemplate.afterPropertiesSet();
+
+        //把改造好的遥控器交给spring管理
+        return redisTemplate;
+    }
+}
+
+
+```
+
+
+- 给高频查询接口加上Redis缓存
+- 缓存应该加在哪里？
+- 加在service层，实现类里
+- 因为service是业务逻辑层，最适合做缓存增强
+- 由于controller只负责接受请求，service负责业务逻辑和数据查询。
+- 缓存属于查询优化，属于业务逻辑，所有调用service的地方都能自动用上缓存，不需要更改多处
+
+- 哪些接口需要加缓存，以 UserInfoServiceimpl 为例
+- 根据id查询用户，查询所有用户，登录查询用户这三个是最频繁访问的，必须加缓存
+
+- 加缓存的流程
+```
+1. 先查 Redis
+2. Redis 有 → 直接返回（不查数据库）
+3. Redis 没有 → 查 MySQL
+4. 查到后 → 存入 Redis
+5. 返回数据
+```
+- 开始改造，只需要改UserInfoServiceimpl
+- 首先在service中注入创建好的RedisTemplate对象
+```
+@Resource
+    private RedisTemplate<String,Object> redisTemplate;
+```
+- 缓存key前缀，统一管理
+- 这是为了区分不同的角色的key不冲突
+- 即用户有用户的key，企业有企业的key，都是使用key定位存储数据的
+- 要是key意义不明，首先查看的时候就很痛苦，不知道这个数据是啥意思，其次对于项目开发，很多地方用到缓存时，key命名要是混乱极易冲突和重复
+- 就相当于给数据放置一个自己命名的文件夹，user文件夹之类的
+```
+private static final String USER_KEY = "user:";
+private static final String USER_LIST_KEY = "user:list";
+private static final String USER_ACCOUNT_KEY = "user:account:";
+
+```
+- 给根据id查询用户加缓存
+```
+@Override
+    public UserInfo getUserById(Long id){
+        //拼接Redis Key
+        String key = USER_KEY + id;
+
+        //先查缓存
+        UserInfo user = (UserInfo) redisTemplate.opsForValue().get(key);
+        if(user != null){
+            return user;  //命中缓存，直接返回
+        }
+
+        //缓存未命中，查数据库
+        user = userInfoMapper.selectUserById(id);
+
+        //查到了就存入Redis(10分钟过期)
+        if(user != null){
+            redisTemplate.opsForValue().set(key,user,600, TimeUnit.SECONDS);
+        }
+        return user;
+    }
+```
+- 首先，这是存取字符串，先根据项目设置key
+- 一般我们在Redis是 set username zcx  get username
+- 现在在这里，我们要根据id查询，那么就把username换成user:1
+- 即换一个key值的显示，其他的是一样的、
+- 即拼接一下key    String key = USER_KEY + id;
+
+- 核心：UserInfo user = (UserInfo) redisTemplate.opsForValue().get(key);
+- 从Redis取数据
+- redisTemplate是之前配置类造好的Redis操控工具
+- .opsForValue()：ops = operation（操作），意思是我要操作String类型的数据，对应cmd中的set/get
+- .get(key)：根据key去Redis中查数据，返回value
+- (UserInfo)：强制类型转换，Redis存进去的是Object，取回来我们要转成UserInfo对象
+
+
+
+- 核心：redisTemplate.opsForValue().set(key,user,600, TimeUnit.SECONDS);
+- 向Redis存数据
+- redisTemplate是之前配置类造好的Redis操控工具
+- .opsForValue()：ops = operation（操作），意思是我要操作String类型的数据，对应cmd中的set/get
+- .set(key,user,600, TimeUnit.SECONDS):往Redis中存数据
+- 参数是key：就是之前拼接的key
+- user：就是在MySQL中查询到的对象
+- 600，TimeUnit.SECONDS：600秒后自动删除，相当于expire key 600
+- 这就对应了取数据为什么能根据一个key能取到整个UserInfo对象，因为我存的就是一整个UserInfo对象
+
+
+- 下面是查询所有用户和登录的修改后的代码，思路跟上述一致
+```
+@Override
+    public List<UserInfo> getAllUsers(){
+        String key = USER_LIST_KEY;
+
+        //查缓存
+        List<UserInfo> list = (List<UserInfo>) redisTemplate.opsForValue().get(key);
+        if(list != null){
+            return list;
+        }
+
+        //查数据库
+        list = userInfoMapper.selectAllUsers();
+
+        if(list != null && !list.isEmpty()){
+            redisTemplate.opsForValue().set(key, list, 300, TimeUnit.SECONDS);
+        }
+        return list;
+    }
+
+    //个人用户登录方法，即查账号
+    @Override
+    public UserInfo getByAccount(String account, String password){
+        String key = USER_ACCOUNT_KEY + account;
+
+        // 查缓存
+        UserInfo user = (UserInfo) redisTemplate.opsForValue().get(key);
+
+        if(user != null){
+            //缓存里有，直接校验密码
+            if(user.getPassword().equals(password)){
+                return user;
+            }
+            return null;
+        }
+
+        //缓存没有，查数据库
+
+        user = userInfoMapper.selectByAccount(account);
+        if (user == null) {
+            return null;
+        }
+        // 密码不正确
+        if (!user.getPassword().equals(password)) {
+            return null;
+        }
+        
+        // 登录成功，放入缓存（10分钟）
+        redisTemplate.opsForValue().set(key, user, 600, TimeUnit.SECONDS);
+
+        return user;
+    }
+```
+
+- 重点：数据库和缓存必须一致，即数据库更新和删除数据时，缓存必须同步更新！！
+- 即修改updateUser接口、deleteUser接口、addUser接口
+```
+@Override   //重写接口
+    public int addUser(UserInfo userInfo){
+        //新增用户，清空列表缓存
+        int rows = userInfoMapper.insertUser(userInfo);
+        if (rows > 0) {
+            redisTemplate.delete(USER_LIST_KEY);
+        }
+        return rows;   //直接return就行是因为当前没有业务逻辑直接就是数据库操作
+    }
+
+    @Override
+    public int deleteUser(Long id){
+        //删除用户 删除缓存，因为登录时还存了account数据，但是这个方法没传入整体的对象
+        //所以需要先查一遍，拿到用户信息，再把三个缓存都删了
+        UserInfo user = userInfoMapper.selectUserById(id);
+
+        int rows = userInfoMapper.deleteUserById(id);
+        if (rows > 0 && user != null) {
+            redisTemplate.delete(USER_KEY + id);
+            redisTemplate.delete(USER_LIST_KEY);
+            redisTemplate.delete(USER_ACCOUNT_KEY + user.getAccount());
+        }
+        return rows;
+    }
+
+    @Override
+    public int updateUser(UserInfo userInfo){
+        //修改用户时，删除该用户原先存储在Redis中的信息
+        int rows = userInfoMapper.updateUser(userInfo);
+        if(rows>0){
+            //删除该用户的缓存
+            String key = USER_KEY + userInfo.getId();
+            redisTemplate.delete(key);
+
+            //删除账号缓存
+            redisTemplate.delete(USER_ACCOUNT_KEY + userInfo.getAccount());
+
+            //删除用户列表缓存
+            redisTemplate.delete(USER_LIST_KEY);
+        }
+        return rows;
+    }
+
+```
+
+- 注意，如果终端控制台不打印类似于这样的输出，则证明缓存生效了
+- 因为这样的输出证明用了MySQL执行SQL语句在MySQL中查询数据了
+```
+Preparing: select * from user_info where id=?
+==> Parameters: 1(Long)
+<==    Columns: id, account, username, email, password, is_vip
+<==        Row: 1, 202300330000, 哈基延, 2517900254@qq.com, 1000, 1
+<==      Total: 1
+
+```
+
+- 如果启动项目后，浏览器前端出现Whitelabel Error Page
+- 这是常见的告诉我们服务器代码炸了
+- 错误信息藏在IDEA控制台终端里
+- 经典问题：
+```
+java.lang.ClassCastException: class java.util.LinkedHashMap 
+cannot be cast to class 
+com.zcx.talentrecruitmentsystem.entity.UserInfo
+```
+- 意思是：Redis取出来的数据是Map类型，不是之前传进去的UserInfo 对象
+- 在service层中的强制类型转换失败了，所以代码炸了
+- 这是因为存储的时候是UserInfo，但是取数据的时候Redis不知道要转成什么类型
+- 所以Spring默认转成LinkedHashMap类型了，所以会报错
+
+- 主要原因：
+```
+JacksonJsonRedisSerializer<Object> jsonSerializer = new JacksonJsonRedisSerializer<>(Object.class);
+```
+- 在最原先的这种写法，存储的是Object对象，这样取的时候Redis就不知道转成什么类型
+- Redis拿到一串JSON，不知道要转成对应的对象类型，只能转成默认的类型：LinkedHashMap
+- 所以代码炸了
+- 报错：LinkedHashMap cannot be cast to UserInfo
+- 而现在这种写法
+```
+redisTemplate.setValueSerializer(RedisSerializer.json());
+```
+- Spring 官方新版 RedisSerializer.json () 会自动记录对象类型！
+- 所以不会报错，Redis知道要转成什么数据类型
+- 所以service中也不用写强转了(之前写强转是因为配置类用的是原先的写法，结果直接炸了，所以就改成现在这样了)
+
+- 像这种缓存炸了的，一定要打开cmd清理原先本地redis存储的错误的缓存
+- 即打开cmd，输入flushdb
+- 输出为OK，则清理成功
+
+
+
+- 上述只是String数据结构的Redis
+- 把一整个JSON中的数据用String存储
+- 如果要对其中的数据的某一条修改
+- 那就得这个整体的数据全删除再重新加入Redis
+
+- 下面开始使用Hash数据结构，可以存储多个单独的字段，修改的话只需要修改对应的字段即可
+
+
+- 查询简历：先从 Redis Hash 拿
+- opsForHash() : 我要用 Hash 结构
+- entries(key) : 把这个 Hash 所有字段一次性全部取出来
+```
+Map<Object,Object> resumeMap = redisTemplate.opsForHash().entries(key);
+```
+
+- 如果 Hash 里有数据 → 封装成 UserResume 返回
+- 因为： Redis Hash 取出来是 Map，不是对象,所以必须一个一个封装加入，返回封装后的对象
+```
+if(!resumeMap.isEmpty()){
+            UserResume userResume = new UserResume();
+            userResume.setId(((Integer) resumeMap.get("id")).longValue());
+            userResume.setUserId(((Integer) resumeMap.get("userId")).longValue());
+            userResume.setGender((String) resumeMap.get("gender"));
+            userResume.setIdCard((String) resumeMap.get("idCard"));
+            userResume.setBirthDate(LocalDate.parse((String) resumeMap.get("birthDate")));
+            userResume.setNation((String) resumeMap.get("nation"));
+            userResume.setPoliticalStatus((String) resumeMap.get("politicalStatus"));
+            userResume.setMaritalStatus((String) resumeMap.get("maritalStatus"));
+            userResume.setNativePlace((String) resumeMap.get("nativePlace"));
+            userResume.setCurrentCity((String) resumeMap.get("currentCity"));
+            userResume.setHighestEducation((String) resumeMap.get("highestEducation"));
+            userResume.setGraduateSchool((String) resumeMap.get("graduateSchool"));
+            userResume.setDepartment((String) resumeMap.get("department"));
+            userResume.setMajor((String) resumeMap.get("major"));
+            userResume.setEducationType((String) resumeMap.get("educationType"));
+            userResume.setSchoolSystem((String) resumeMap.get("schoolSystem"));
+            userResume.setForeignLevel((String) resumeMap.get("foreignLevel"));
+            userResume.setJobCity((String) resumeMap.get("jobCity"));
+            userResume.setExpectedPosition((String) resumeMap.get("expectedPosition"));
+            userResume.setSkills((String) resumeMap.get("skills"));
+            userResume.setProjectExperience((String) resumeMap.get("projectExperience"));
+            userResume.setSelfEvalution((String) resumeMap.get("selfEvalution"));
+            return userResume;
+        }
+```
+
+- 如果缓存没有 → 查询数据库
+```
+UserResume userResume = userResumeMapper.selectResumeByUserId(userId);
+```
+- 数据库查到 → 写入 Redis Hash
+```
+if(userResume!=null){
+            //如果在数据库中查询到了，就需要把它加入到缓存中，用Hash
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", userResume.getId());
+            map.put("userId", userResume.getUserId());
+            map.put("gender", userResume.getGender());
+            map.put("idCard", userResume.getIdCard());
+            map.put("birthDate", userResume.getBirthDate().toString());
+            map.put("nation", userResume.getNation());
+            map.put("politicalStatus", userResume.getPoliticalStatus());
+            map.put("maritalStatus", userResume.getMaritalStatus());
+            map.put("nativePlace", userResume.getNativePlace());
+            map.put("currentCity", userResume.getCurrentCity());
+            map.put("highestEducation", userResume.getHighestEducation());
+            map.put("graduateSchool", userResume.getGraduateSchool());
+            map.put("department", userResume.getDepartment());
+            map.put("major", userResume.getMajor());
+            map.put("educationType", userResume.getEducationType());
+            map.put("schoolSystem", userResume.getSchoolSystem());
+            map.put("foreignLevel", userResume.getForeignLevel());
+            map.put("jobCity", userResume.getJobCity());
+            map.put("expectedPosition", userResume.getExpectedPosition());
+            map.put("skills", userResume.getSkills());
+            map.put("projectExperience", userResume.getProjectExperience());
+            map.put("selfEvalution", userResume.getSelfEvalution());
+
+            redisTemplate.opsForHash().putAll(key,map);
+        }
+```
+- Hash没有办法直接存储对象，必须拆成一个一个字段存储
+- 所以需要把对象的每一个属性进行get然后往map里加，最后使用putAll一次性把整个map加入到redis中
+
+
+- 修改简历，如果简历能在redis中查到（其实肯定有，因为每次查看都要加入缓存）
+- 那么直接声明map
+- 然后把传入的修改后的对象的各个属性进行获取，然后分别加入加入map
+- 最后把map一整个加入到redis中
+- 按照hashmap特性，put进去的相同key，key的value会被后续加入的覆盖，所以直接用putAll即可
+```
+String key = RESUME_HASH_KEY + userResume.getUserId();
+            Map<String,Object> map = new HashMap<>();
+            map.put("gender",userResume.getGender());
+            map.put("skills", userResume.getSkills());
+            map.put("graduateSchool", userResume.getGraduateSchool());
+            map.put("birthDate", userResume.getBirthDate().toString());
+            redisTemplate.opsForHash().putAll(key,map);
+```
+- 比如说这里就只获取了几条属性，只有修改这几条属性才会能成功显示在浏览器
+- 因为其他属性没有被获取，然后整体的key和输出都已经存在redis中
+- 那么其他的那些数据，就直接根据原先存在redis中的那些进行返回了
+- 只有在这里的这些是能成功修改的
+- 所以一般这里应该写全部的resume属性
+
+- 在创建map的过程中，如果添加用Map.of()会有问题，只能允许最大10条数据添加
+- 而我这个resume有超过10条的数据
+- 就需要用到Map数据结构了，能存多少就多少
+
+
+- 以上是Hash的数据结构，那么下面开始研究Redis的List结构
+
+- List特点
+  - 有序：元素保持插入顺序，可通过索引获取
+  - 可重复：允许存储相同的元素
+  - 底层是双向链表，左右两端操作极快
+  - 适合：列表、流水记录、时序数据、消息队列
+  - 比如在此项目中，用户岗位投递记录、留言列表、最新发布的岗位列表等
+
+- 以用户投递岗位记录为例
+- 由于本身代码底层不想改动太多mapper和SQL，所以每次投递成功后就重新查询该用户的所有投递记录，加入缓存
+- 全量覆盖
+- 修改状态成功后，直接删除之前的List，下次查询就是新的List加入了
+
+
+- 用户投递岗位 -> 删除原先缓存 -> 重新查最新列表加入缓存
+- 用户查询自己的投递记录 -> 优先查Redis，没有再查数据库
+- 企业修改投递状态 -> 等待Redis缓存过期失效、在下一次用户查询时重新加入缓存
+
+
+
+```
+//用户查询投递记录列表  - 加入List缓存
+    @Override
+    public List<JobPostWithDeliveryVO> getJobPostByUserId(Long userId){
+        String key = DELIVERY_LIST_KEY + userId;
+        List<JobPostWithDeliveryVO> list = (List<JobPostWithDeliveryVO>) (List<?>)redisTemplate.opsForList().range(key,0,-1);
+
+        if(list != null && !list.isEmpty()){
+            return list;
+        }
+
+        list = deliveryRecordMapper.selectJobPostByUserId(userId);
+        if(list != null && !list.isEmpty()){
+            //把从数据库查询到的数据全部右插加入缓存
+            redisTemplate.opsForList().rightPushAll(key,list.toArray());
+            //设置缓存过期时间
+            redisTemplate.expire(key,CACHE_EXPIPE, TimeUnit.MINUTES);
+        }
+
+        return list;
+    }
+    
+    //真正的业务逻辑
+    //只有企业用户才可以修改投递状态
+    //企业修改投递状态后，把之前的用户投递记录缓存删除，下次查询自动重新构建新缓存
+    //但是我的底层没有根据投递表的主键id查询用户ID的方法
+    //所以正能等待缓存自动过期
+    @Override
+    public int udtDeliveryStatus(Long id,Integer status,String userType){
+        if(userType==null || !userType.equals("enterprise")){
+            return 0;
+        }
+        int rows = deliveryRecordMapper.updateDeliveryStatus(id,status);
+
+        return rows;
+    }
+    
+    //用户投递
+    //用户新增投递  - 同步更新list缓存
+    @Override
+    public int addDelivery(Long userId, Long jobId) {
+        int rows = deliveryRecordMapper.insertDelivery(userId, jobId);
+
+        if(rows>0){
+            String key = DELIVERY_LIST_KEY + userId;
+            //删除旧缓存
+            redisTemplate.delete(key);
+
+            //查询最新列表
+            List<JobPostWithDeliveryVO> newlist = deliveryRecordMapper.selectJobPostByUserId(userId);
+            //重新写入缓存
+            redisTemplate.opsForList().rightPushAll(key,newlist.toArray());
+            redisTemplate.expire(key,CACHE_EXPIPE,TimeUnit.MINUTES);
+        }
+        return rows;
+    }
+    
+```
+
+- 相比于String和Hash，List也需要一个key
+- 拼接key+userId
+- 每个用户独立一个List，互不干扰
+```
+List<JobPostWithDeliveryVO> list = 
+    (List<JobPostWithDeliveryVO>) (List<?>)redisTemplate.opsForList().range(key,0,-1);
+```
+- opsForList() = 我要操作 List 结构
+- range(key, 0, -1)
+- 0 = 从第 0 个元素开始
+- -1 = 取到最后一个元素
+- 作用：把整个 List 全部取出来
+
+- 数据库查询后，批量右侧插入缓存
+```
+redisTemplate.opsForList().rightPushAll(key, list.toArray());
+```
+- rightPushAll是从右侧批量插入
+- list.toArray()是把数组list存储了执行后的SQL返回值拆分成多个单独的对象
+- 如果直接存list，就是把一大堆对象整体打包给缓存list
+- 后续取数据的时候类型转换直接报错
+- 用了.toArray()就是把一大包list拆成一个个单独的对象
+- 因为缓存list底层是双向链表，所以只能一个一个对象添加，因为要管理左右指针
+
+- 取数据的时候为什么有两次强制类型转换
+```
+List<JobPostWithDeliveryVO> list = (List<JobPostWithDeliveryVO>) (List<?>)redisTemplate.opsForList().range(key,0,-1);
+```
+- 由于缓存list是一个双向链表，不是数组
+- 所以它没有直接给我整个列表的命令，只能用range来取
+- 他的原生Redis List取数据命令只有LRANGE key 开始索引 结束索引
+- LRANGE ： List Range（列表范围）
+- 必须指定从哪里取到哪里
+- 调用这个方法，返回的是一堆对象的列表：List<Object>
+- 由于java语法规则，我如果想要得到具体的类对象不能从Object类型直接强转
+- 必须先把Object类型先转成无泛型：List<?>
+- 再把无泛型强转为我想要的类型：List<JobPostWithDeliveryVO>
+
+
+- 综上，Redis的List数据结构实际上就是把多条String用双向链表存起来，排好顺序，维护前后指针
+- 注意list内部没有存储索引，它纯是一点一点遍历查出来的
+
+
+
