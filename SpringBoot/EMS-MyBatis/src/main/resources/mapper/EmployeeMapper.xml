@@ -7,25 +7,36 @@
 <mapper namespace="com.example.emsmybatis.mapper.EmployeeMapper">
 
     <!-- 查询所有 -->
-    <select id="findAll" resultType="com.example.emsmybatis.entity.Employee">
-        select * from employee
+    <select id="findAll" resultMap="EmployeeWithDeptMap">
+        SELECT
+        e.*,
+        d.id AS dept_id,
+        d.dept_name
+        FROM employee e
+        LEFT JOIN department d ON e.dept_id = d.id
     </select>
 
     <!-- 根据ID查询 -->
-    <select id="findById" resultType="com.example.emsmybatis.entity.Employee" parameterType="int">
-        select * from employee where id = #{id}
+    <select id="findById" resultMap="EmployeeWithDeptMap">
+        SELECT
+        e.*,
+        d.id AS dept_id,
+        d.dept_name
+        FROM employee e
+        LEFT JOIN department d ON e.dept_id = d.id
+        WHERE e.id = #{id}
     </select>
 
     <!-- 新增 -->
     <insert id="insert" parameterType="com.example.emsmybatis.entity.Employee">
-        insert into employee(name, age, email)
-        values(#{name}, #{age}, #{email})
+        insert into employee(name, age, email, dept_id)
+        values(#{name}, #{age}, #{email}, #{dept_id})
     </insert>
 
     <!-- 修改 -->
     <update id="update" parameterType="com.example.emsmybatis.entity.Employee">
         update employee
-        set name=#{name}, age=#{age}, email=#{email}
+        set name=#{name}, age=#{age}, email=#{email}, dept_id=#{dept_id}
         where id=#{id}
     </update>
 
@@ -33,5 +44,92 @@
     <delete id="delete" parameterType="int">
         delete from employee where id=#{id}
     </delete>
+
+    <!-- 动态条件查询 -->
+    <select id="findByCondition" resultType="com.example.emsmybatis.entity.Employee">
+        select * from employee
+        <where>
+            <if test="name != null and name != ''">
+                and name like concat('%', #{name}, '%')
+            </if>
+            <if test="age != null">
+                and age = #{age}
+            </if>
+        </where>
+    </select>
+
+    <!-- 动态更新 -->
+    <update id="updateDynamic" parameterType="com.example.emsmybatis.entity.Employee">
+        update employee
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="age != null">age = #{age},</if>
+            <if test="email != null">email = #{email},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!-- 批量删除 -->
+    <delete id="deleteBatch">
+        delete from employee where id in
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <!-- 批量新增 -->
+    <insert id="insertBatch">
+        insert into employee(name,age,email,dept_id) values
+        <foreach collection="list" item="emp" separator=",">
+            (#{emp.name}, #{emp.age}, #{emp.email},#{emp.dept_id})
+        </foreach>
+    </insert>
+
+    <!-- choose 多选一查询 -->
+    <select id="findByChoose" resultType="com.example.emsmybatis.entity.Employee">
+        select * from employee
+        <where>
+            <choose>
+                <when test="name != null">
+                    name = #{name}
+                </when>
+                <when test="age != null">
+                    age = #{age}
+                </when>
+                <otherwise>
+                    1=1
+                </otherwise>
+            </choose>
+        </where>
+    </select>
+
+
+    <!-- 联表查询 resultMap：员工 + 部门 -->
+    <resultMap id="EmployeeWithDeptMap" type="com.example.emsmybatis.entity.Employee">
+        <!-- 员工表字段映射 -->
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="age" property="age"/>
+        <result column="email" property="email"/>
+        <result column="dept_id" property="dept_id"/>
+
+        <!-- 一对一关联：部门表 -->
+        <association property="department" javaType="com.example.emsmybatis.entity.Department">
+            <id column="dept_id" property="id"/>
+            <result column="dept_name" property="dept_name"/>
+        </association>
+    </resultMap>
+
+    <!-- 联表查询 SQL：根据 dept_id 查询员工 + 部门 -->
+    <select id="findEmployeeWithDept" resultMap="EmployeeWithDeptMap">
+        SELECT
+        e.*,
+        d.id AS dept_id,
+        d.dept_name
+        FROM employee e
+        LEFT JOIN department d ON e.dept_id = d.id
+        WHERE e.dept_id = #{dept_id}
+    </select>
+
 
 </mapper>

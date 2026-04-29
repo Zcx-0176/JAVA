@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>修改员工</title>
+</head>
+<body>
+<h1>修改员工</h1>
+
+<form action="/employee/update" method="post">
+    <!-- 隐藏域传递id -->
+    <input type="hidden" name="id" th:value="${emp.id}">
+
+    姓名：<input type="text" name="name" th:value="${emp.name}"><br/>
+    年龄：<input type="text" name="age" th:value="${emp.age}"><br/>
+    邮箱：<input type="text" name="email" th:value="${emp.email}"><br/>
+    部门ID：<input type="text" name="dept_id" th:value="${emp.dept_id}"><br/>
+
+    <button type="submit">保存修改</button>
+</form>
+
+<br/>
+<a href="/employee/list">返回列表</a>
+</body>
+</html>

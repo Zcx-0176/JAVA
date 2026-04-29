@@ -17,4 +17,17 @@ public interface EmployeeMapper {
     int update(Employee employee);
     //删除
     int delete(Integer id);
+
+    //动态条件查询
+    List<Employee> findByCondition(Employee employee);
+    //动态更新
+    int updateDynamic(Employee employee);
+    //批量删除
+    int deleteBatch(List<Integer> ids);
+    //批量插入
+    int insertBatch(List<Employee> employees);
+    //choose查询
+    List<Employee> findByChoose(Employee employee);
+    //多表查询
+    List<Employee> findEmployeeWithDept(Integer dept_id);
 }

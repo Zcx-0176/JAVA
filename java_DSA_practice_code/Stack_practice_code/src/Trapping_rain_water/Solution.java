@@ -1,55 +1,39 @@
 package Trapping_rain_water;
 
+import java.util.Arrays;
+
 public class Solution {
     public int trap(int[] height) {
         int n = height.length;
-        int all_sum = 0;
-        int height_sum = 0;
-        int left = 0;
-        int right = n-1;
+        int[] leftmax = new int[n];
+        int[] rightmax = new int[n];
+        leftmax[0] = height[0];
+        int lmax = height[0];
+        for(int i=1;i<n;i++){
+            if(height[i]<lmax){
+                leftmax[i] = leftmax[i-1];
+            }
+            else{
+                lmax = height[i];
+                leftmax[i] = height[i];
+            }
+        }
+        rightmax[n-1] = height[n-1];
+        int rmax = height[n-1];
+        for(int i=n-2;i>=0;i--){
+            if(height[i] < rmax){
+                rightmax[i] = rightmax[i+1];
+            }else{
+                rmax = height[i];
+                rightmax[i] = height[i];
+            }
+        }
+        int sum = 0;
         for(int i=0;i<n;i++){
-            height_sum +=height[i];
+            sum += Math.min(leftmax[i],rightmax[i])-height[i];
+        }
+        return sum;
 
-        }
-        while(height[left]==0){
-            left++;
-        }
-        while(height[right]==0){
-            right--;
-        }
-        int h = Math.min(height[left],height[right]);
-        int temp = 0;
-        while(left<right){
-            while(height[left]<h){
-                left++;
-            }
-            while(height[right]<h){
-                right--;
-            }
-            all_sum += (right-left+1)*(h-temp);
-            temp = h;
-            while(height[left]<=h){
-                left++;
-            }
-            while(height[right]<=h){
-                right--;
-            }
-            h=Math.min(height[left],height[right]);
-        }
-        while(height[left]==h){
-            left--;
-        }
-        while(height[right]==h){
-            right++;
-        }
-        all_sum += (right-left+1)*(h-temp);
-        int result = 0;
-        if(all_sum==0){
-            result = 0;
-        }else{
-            result = all_sum-height_sum;
-        }
-        return result;
     }
     public static void main(String[] args) {
         Solution s = new Solution();
